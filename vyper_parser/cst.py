@@ -1,4 +1,6 @@
-import os
+from pathlib import (
+    Path,
+)
 from typing import (
     Any,
     Union,
@@ -29,7 +31,7 @@ class PythonIndenter(Indenter):
 
 
 parser = Lark.open(
-    os.path.join(os.path.dirname(__file__), 'python3.lark'),
+    Path(__file__).parent / 'python3.lark',
     parser='lalr',
     rel_to=__file__,
     postlex=PythonIndenter(),

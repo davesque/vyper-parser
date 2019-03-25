@@ -1,7 +1,7 @@
-<PROJECT_NAME>
+vyper-parser
 ==============================
 
-<SHORT_DESCRIPTION>
+An experimental parser for vyper.
 
 Contents
 --------
@@ -9,7 +9,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    <MODULE_NAME>
+    vyper_parser
     releases
 
 

@@ -46,6 +46,9 @@ setup(
     author_email='davesque@gmail.com',
     url='https://github.com/davesque/vyper-parser',
     include_package_data=True,
+    install_requires=[
+        'lark-parser>=0.6.7,<0.7',
+    ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',
     extras_require=extras_require,

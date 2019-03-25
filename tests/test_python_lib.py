@@ -1,7 +1,7 @@
+import os
 from pathlib import (
     Path,
 )
-import os
 import sys
 
 from vyper_parser.cst import (
@@ -30,18 +30,17 @@ def get_lib_path():
     return Path([x for x in sys.path if x.endswith(version_str)][0])
 
 
+def find_fixture_files():
+    return tuple(get_lib_path().glob('*.py'))
+
+
 def test_python_lib():
-    path = get_lib_path()
-    files = tuple(path.glob('*.py'))
+    files = find_fixture_files()
 
     for f in files:
         print(f)
-        parse_python(read_file(os.path.join(path, f)))
+        parse_python(read_file(f))
 
     num_files = len(files)
 
     print(f'test_python_lib ({num_files} files)')
-
-
-if __name__ == '__main__':
-    test_python_lib()

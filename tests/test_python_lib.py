@@ -16,5 +16,5 @@ def pytest_generate_tests(metafunc):
     generate_fixture_tests(metafunc=metafunc)
 
 
-def test_python_lib(fixture_path):
+def test_python_lib_is_parseable(fixture_path):
     parse_python(read_file(fixture_path))

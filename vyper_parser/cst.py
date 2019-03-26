@@ -139,9 +139,10 @@ class NodeVisitor:
 
 class CSTVisitor(NodeVisitor):
     def visit_file_input(self, tree: Tree) -> ast.Module:
-        body = [self.visit(ch) for ch in tree.children]
+        stmts = []
 
-        # All nodes in module body must be statements
-        assert all(isinstance(ch, ast.stmt) for ch in body)
+        for ch in tree.children:
+            require_node_type(ch, 'stmt')
+            stmts.append(self.visit(ch))
 
-        return ast.Module(body)
+        return ast.Module(stmts)

@@ -336,6 +336,22 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
+    def visit_star_expr(self, tree: Tree) -> ast.Starred:
+        """
+        star_expr: "*" expr
+
+        Analogous to:
+        ast_for_starred
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2528)
+        """
+        value = tree.children[0]
+
+        return ast.Starred(
+            self.visit(value),
+            ast.Load,
+            **get_pos_kwargs(tree),
+        )
+
     COMP_OPS = {
         ('<',): ast.Lt,
         ('>',): ast.Gt,

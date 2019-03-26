@@ -90,7 +90,7 @@ lambdef_nocond: "lambda" [varargslist] ":" test_nocond
 ?and_test: not_test ("and" not_test)*
 ?not_test: "not" not_test -> not
          | comparison
-comparison: expr (_comp_op expr)*
+?comparison: expr (comp_op expr)*
 star_expr: "*" expr
 expr: xor_expr ("|" xor_expr)*
 xor_expr: and_expr ("^" and_expr)*
@@ -106,7 +106,7 @@ factor: _factor_op factor | power
 !_mul_op: "*"|"@"|"/"|"%"|"//"
 // <> isn't actually a valid comparison operator in Python. It's here for the
 // sake of a __future__ import described in PEP 401 (which really works :-)
-!_comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
+!comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
 
 power: await_expr ["**" factor]
 await_expr: AWAIT? atom_expr

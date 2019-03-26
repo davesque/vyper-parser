@@ -313,6 +313,60 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
+    def visit_comparison(self, tree: Tree) -> ast.Compare:
+        """
+        ?comparison: expr (comp_op expr)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2613-L2653)
+        """
+        left = tree.children[0]
+        ops = []
+        comparators = []
+
+        for i in range(1, len(tree.children), 2):
+            ops.append(tree.children[i])
+            comparators.append(tree.children[i + 1])
+
+        return ast.Compare(
+            self.visit(left),
+            self.seq_class(self.visit(op) for op in ops),
+            self.seq_class(self.visit(cmp) for cmp in comparators),
+            **get_pos_kwargs(tree),
+        )
+
+    COMP_OPS = {
+        ('<',): ast.Lt,
+        ('>',): ast.Gt,
+        ('==',): ast.Eq,
+        ('<=',): ast.LtE,
+        ('>=',): ast.GtE,
+        ('!=',): ast.NotEq,
+        ('in',): ast.In,
+        ('is',): ast.Is,
+        ('not', 'in'): ast.NotIn,
+        ('is', 'not'): ast.IsNot,
+    }
+
+    def visit_comp_op(self, tree: Tree) -> ast.cmpop:
+        """
+        !comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
+
+        Analogous to:
+        ast_for_comp_op
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1156)
+        """
+        num_children = len(tree.children)
+        tokens = tuple(str(token) for token in tree.children)
+
+        if num_children not in (1, 2):
+            raise Exception(f'Invalid comp_op: {tokens} has {num_children} children')
+        try:
+            return self.COMP_OPS[tokens]
+        except KeyError:
+            raise Exception(f'Invalid comp_op: {tokens}')
+
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))
 

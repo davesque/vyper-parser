@@ -146,24 +146,48 @@ def get_num_stmts(tree: Tree) -> int:
     raise Exception(f'Non-statement found: {typ} {num_children}')
 
 
-TAst = TypeVar('TAst', bound=ast.VyperAST)
-
-
-def make_constant_op_visitor(
+def make_bin_op_visitor(
     doc: str,
-    ResultType: Type[TAst],
-    OpType: Type[ast.VyperAST],
-) -> Callable[[Any, Tree], TAst]:
-    def op_visitor(self, tree: Tree) -> TAst:
-        return ResultType(
-            OpType,
-            self._visit_children(tree),
+    OpType: Type[ast.operator],
+) -> Callable[[Any, Tree], ast.BinOp]:
+    """
+    This generates CST conversion functions for bin op matches.  It mirrors the
+    code found here:
+
+    https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2310
+    """
+    def bin_op_visitor(self, tree: Tree) -> ast.BinOp:
+        left, op, right = tree.children[:2]
+
+        result = ast.BinOp(
+            self.visit(left),
+            self.visit(op),
+            self.visit(right),
             **get_pos_kwargs(tree),
         )
 
-    op_visitor.__doc__ = doc
+        num_ops = (len(tree.children) - 1) // 2
+        for i in range(1, num_ops):
+            next_op = tree.children[i * 2 + 1]
+            next_expr = tree.children[i * 2 + 2]
 
-    return op_visitor
+            tmp_result = ast.BinOp(
+                result,
+                self.visit(next_op),
+                self.visit(next_expr),
+                **get_pos_kwargs(next_op),
+            )
+
+            result = tmp_result
+
+        return result
+
+    bin_op_visitor.__doc__ = doc
+
+    return bin_op_visitor
+
+
+TAst = TypeVar('TAst', bound=ast.VyperAST)
 
 
 def make_op_token_visitor(
@@ -391,7 +415,7 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
-    visit_expr = make_constant_op_visitor(
+    visit_expr = make_bin_op_visitor(
         """
         ?expr: xor_expr ("|" xor_expr)*
 
@@ -399,10 +423,10 @@ class CSTVisitor(Generic[TSeq]):
         ast_for_expr
         (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
         """,
-        ast.BinOp, ast.BitOr,
+        ast.BitOr,
     )
 
-    visit_xor_expr = make_constant_op_visitor(
+    visit_xor_expr = make_bin_op_visitor(
         """
         ?xor_expr: and_expr ("^" and_expr)*
 
@@ -410,10 +434,10 @@ class CSTVisitor(Generic[TSeq]):
         ast_for_expr
         (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
         """,
-        ast.BinOp, ast.BitXor,
+        ast.BitXor,
     )
 
-    visit_and_expr = make_constant_op_visitor(
+    visit_and_expr = make_bin_op_visitor(
         """
         ?and_expr: shift_expr ("&" shift_expr)*
 
@@ -421,7 +445,7 @@ class CSTVisitor(Generic[TSeq]):
         ast_for_expr
         (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
         """,
-        ast.BinOp, ast.BitAnd,
+        ast.BitAnd,
     )
 
     FACTOR_OPS = {

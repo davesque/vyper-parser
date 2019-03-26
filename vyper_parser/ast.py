@@ -5,7 +5,6 @@ from typing import (
     Union,
 )
 
-
 constant = Any
 identifier = str
 singleton = Union[None, bool]

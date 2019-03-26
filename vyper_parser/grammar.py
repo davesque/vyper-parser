@@ -1,3 +1,5 @@
+# flake8: noqa
+
 PYTHON_GRAMMAR = """
 # Grammar for Python
 

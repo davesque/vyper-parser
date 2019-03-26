@@ -10,13 +10,14 @@ from lark import (
     Lark,
     Token,
 )
-from lark.indenter import Indenter
-from lark.tree import Tree
-
-from . import (
-    ast,
+from lark.indenter import (
+    Indenter,
+)
+from lark.tree import (
+    Tree,
 )
 
+from . import ast
 
 LarkNode = Union[Tree, Token]
 

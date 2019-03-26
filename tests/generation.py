@@ -1,11 +1,11 @@
+import os
 from pathlib import (
     Path,
 )
+import sys
 from typing import (
     Any,
 )
-import os
-import sys
 
 
 def get_id(fixture_path: Path) -> str:

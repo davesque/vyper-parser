@@ -870,7 +870,7 @@ class Tuple(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):

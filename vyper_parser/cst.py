@@ -419,37 +419,6 @@ class CSTVisitor(Generic[TSeq]):
         ast.BinOp, ast.BitAnd,
     )
 
-    COMP_OPS = {
-        ('<',): ast.Lt,
-        ('>',): ast.Gt,
-        ('==',): ast.Eq,
-        ('<=',): ast.LtE,
-        ('>=',): ast.GtE,
-        ('!=',): ast.NotEq,
-        ('in',): ast.In,
-        ('is',): ast.Is,
-        ('not', 'in'): ast.NotIn,
-        ('is', 'not'): ast.IsNot,
-    }
-
-    def visit_comp_op(self, tree: Tree) -> ast.cmpop:
-        """
-        !comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
-
-        Analogous to:
-        ast_for_comp_op
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1156)
-        """
-        num_children = len(tree.children)
-        tokens = tuple(str(token) for token in tree.children)
-
-        if num_children not in (1, 2):
-            raise Exception(f'Invalid comp_op: {tokens} has {num_children} children')
-        try:
-            return self.COMP_OPS[tokens]
-        except KeyError:
-            raise Exception(f'Invalid comp_op: {tokens}')
-
     FACTOR_OPS = {
         '+': ast.UAdd,
         '-': ast.USub,
@@ -513,6 +482,37 @@ class CSTVisitor(Generic[TSeq]):
         """,
         'mul_op', MUL_OPS,
     )
+
+    COMP_OPS = {
+        ('<',): ast.Lt,
+        ('>',): ast.Gt,
+        ('==',): ast.Eq,
+        ('<=',): ast.LtE,
+        ('>=',): ast.GtE,
+        ('!=',): ast.NotEq,
+        ('in',): ast.In,
+        ('is',): ast.Is,
+        ('not', 'in'): ast.NotIn,
+        ('is', 'not'): ast.IsNot,
+    }
+
+    def visit_comp_op(self, tree: Tree) -> ast.cmpop:
+        """
+        !comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
+
+        Analogous to:
+        ast_for_comp_op
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1156)
+        """
+        num_children = len(tree.children)
+        tokens = tuple(str(token) for token in tree.children)
+
+        if num_children not in (1, 2):
+            raise Exception(f'Invalid comp_op: {tokens} has {num_children} children')
+        try:
+            return self.COMP_OPS[tokens]
+        except KeyError:
+            raise Exception(f'Invalid comp_op: {tokens}')
 
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))

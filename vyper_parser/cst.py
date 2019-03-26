@@ -414,6 +414,8 @@ class CSTVisitor(Generic[TSeq]):
     visit_xor_expr = _visit_bin_op
     visit_and_expr = _visit_bin_op
     visit_shift_expr = _visit_bin_op
+    visit_arith_expr = _visit_bin_op
+    visit_term = _visit_bin_op
 
     FACTOR_OPS = {
         '+': ast.UAdd,

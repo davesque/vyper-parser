@@ -178,7 +178,7 @@ class CSTVisitor(Generic[TSeq]):
         testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]
         !augassign: ("+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|="
                   | "^=" | "<<=" | ">>=" | "**=" | "//=")
-        test: ... here starts the operator precedence dance
+        ?test: ... here starts the operator precedence dance
 
         Analogous to:
         ast_for_expr_stmt
@@ -189,6 +189,8 @@ class CSTVisitor(Generic[TSeq]):
         * ``True, False``
         * ``x: int = 5``
         * ``x += 1``
+        * ``x, y = 1, 2``
+        * ``x = y = 1``
         """
         if len(tree.children) == 1:
             return ast.Expr(
@@ -197,6 +199,21 @@ class CSTVisitor(Generic[TSeq]):
             )
 
     def visit_testlist_star_expr(self, tree: Tree) -> TSeq:
+        """
+        testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]
+        ?test: ... here starts the operator precedence dance
+        star_expr: "*" expr
+        expr: ... half of the operator precedence dance starts here
+
+        Analogous to:
+        ast_for_testlist
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2887-L2898)
+
+        Parses statements like:
+        * ``True``
+        * ``True, False``
+        * ``1, 2``
+        """
         if len(tree.children) == 1:
             return self.visit(tree.children[0])
         else:
@@ -207,10 +224,92 @@ class CSTVisitor(Generic[TSeq]):
             )
 
     def visit_test(self, tree: Tree) -> ast.Expr:
+        """
+        ?test: or_test ["if" or_test "else" test] | lambdef
+
+        Analogous to:
+        ast_for_ifexpr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1750)
+
+        Since this grammar rule has the '?' prefix, it will be filtered out of
+        the parse tree whenever it is *not* matching a ternary expression i.e.
+        when it has only one child.  Therefore, this rule visitor only handles
+        the ternary case.
+        """
+        body, test, orelse = tree.children
+
         return ast.IfExp(
-            self.visit(tree.children[1]),
-            self.visit(tree.children[0]),
-            self.visit(tree.children[2]),
+            self.visit(test),
+            self.visit(body),
+            self.visit(orelse),
+            **get_pos_kwargs(tree),
+        )
+
+    def visit_lambdef(self, tree: Tree) -> ast.Lambda:
+        """
+        lambdef: "lambda" [varargslist] ":" test
+        lambdef_nocond: "lambda" [varargslist] ":" test_nocond
+
+        Analogous to:
+        ast_for_lambdef
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1722)
+        """
+        if len(tree.children) == 1:
+            # Lambda with no args
+            args, body = None, tree.children[0]
+        else:
+            args, body = tree.children
+
+        return ast.Lambda(
+            self.visit(args),
+            self.visit(body),
+            **get_pos_kwargs(tree),
+        )
+
+    visit_lambdef_nocond = visit_lambdef
+
+    def visit_or_test(self, tree: Tree) -> ast.BoolOp:
+        """
+        ?or_test: and_test ("or" and_test)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2580-L2599)
+        """
+        return ast.BoolOp(
+            ast.Or,
+            self._visit_children(tree),
+            **get_pos_kwargs(tree),
+        )
+
+    def visit_and_test(self, tree: Tree) -> ast.BoolOp:
+        """
+        ?and_test: not_test ("and" not_test)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2580-L2599)
+        """
+        return ast.BoolOp(
+            ast.And,
+            self._visit_children(tree),
+            **get_pos_kwargs(tree),
+        )
+
+    def visit_not(self, tree: Tree) -> ast.BoolOp:
+        """
+        ?not_test: "not" not_test -> not
+                 | comparison
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2600-L2612)
+        """
+        operand = tree.children[0]
+
+        return ast.UnaryOp(
+            ast.Not,
+            self.visit(operand),
             **get_pos_kwargs(tree),
         )
 
@@ -225,15 +324,3 @@ class CSTVisitor(Generic[TSeq]):
 
     def visit_const_false(self, tree: Tree) -> ast.Expr:
         return ast.NameConstant(False, **get_pos_kwargs(tree))
-
-    def visit_lambdef(self, tree: Tree) -> ast.Lambda:
-        if len(tree.children) == 1:
-            # Lambda with no args
-            args = None
-            body = self.visit(tree.children[0])
-        else:
-            # Lambda with args
-            args = self.visit(tree.children[0])
-            body = self.visit(tree.children[1])
-
-        return ast.Lambda(args, body, **get_pos_kwargs(tree))

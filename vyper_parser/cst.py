@@ -420,47 +420,14 @@ class CSTVisitor(Generic[TSeq]):
         '-': ast.USub,
         '~': ast.Invert,
     }
-    visit_factor_op = make_op_token_visitor(
-        """
-        !factor_op: "+"|"-"|"~"
-
-        Analogous to:
-        ast_for_factor
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2438)
-        """,
-        'factor_op', FACTOR_OPS,
-    )
-
     ADD_OPS = {
         '+': ast.Add,
         '-': ast.Sub,
     }
-    visit_add_op = make_op_token_visitor(
-        """
-        !add_op: "+"|"-"
-
-        Analogous to:
-        get_operator
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
-        """,
-        'add_op', ADD_OPS,
-    )
-
     SHIFT_OPS = {
         '<<': ast.LShift,
         '>>': ast.RShift,
     }
-    visit_shift_op = make_op_token_visitor(
-        """
-        !shift_op: "<<"|">>"
-
-        Analogous to:
-        get_operator
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
-        """,
-        'shift_op', SHIFT_OPS,
-    )
-
     MUL_OPS = {
         '*': ast.Mult,
         '@': ast.MatMult,
@@ -468,16 +435,24 @@ class CSTVisitor(Generic[TSeq]):
         '%': ast.Mod,
         '//': ast.FloorDiv,
     }
-    visit_mul_op = make_op_token_visitor(
-        """
-        !mul_op: "*"|"@"|"/"|"%"|"//"
 
-        Analogous to:
-        get_operator
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
-        """,
-        'mul_op', MUL_OPS,
-    )
+    OP_TOKEN_DOCS = """
+    !factor_op: "+"|"-"|"~"
+    !add_op: "+"|"-"
+    !shift_op: "<<"|">>"
+    !mul_op: "*"|"@"|"/"|"%"|"//"
+
+    Analogous to:
+    ast_for_factor
+    (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2438)
+    --and--
+    get_operator
+    (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
+    """
+    visit_factor_op = make_op_token_visitor(OP_TOKEN_DOCS, 'factor_op', FACTOR_OPS)
+    visit_add_op = make_op_token_visitor(OP_TOKEN_DOCS, 'add_op', ADD_OPS)
+    visit_shift_op = make_op_token_visitor(OP_TOKEN_DOCS, 'shift_op', SHIFT_OPS)
+    visit_mul_op = make_op_token_visitor(OP_TOKEN_DOCS, 'mul_op', MUL_OPS)
 
     COMP_OPS = {
         ('<',): ast.Lt,

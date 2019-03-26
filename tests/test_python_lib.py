@@ -13,7 +13,7 @@ def read_file(filename):
 
 
 def pytest_generate_tests(metafunc):
-    generate_fixture_tests(metafunc=metafunc)
+    generate_fixture_tests(metafunc)
 
 
 def test_python_lib_is_parseable(fixture_path):

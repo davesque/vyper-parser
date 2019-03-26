@@ -313,7 +313,7 @@ class CSTVisitor(Generic[TSeq]):
         ast.BoolOp, ast.And,
     )
 
-    def visit_not(self, tree: Tree) -> ast.BoolOp:
+    def visit_not(self, tree: Tree) -> ast.UnaryOp:
         """
         ?not_test: "not" not_test -> not
                  | comparison

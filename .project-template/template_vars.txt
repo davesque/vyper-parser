@@ -1,6 +1,0 @@
-vyper_parser
-vyper-parser
-vyper-parser
-vyper-parser
-vyper-parser
-An experimental parser for vyper.

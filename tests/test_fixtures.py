@@ -18,5 +18,5 @@ FIXTURES_PATH = Path(__file__).parent / 'fixtures'
     'fixture_path',
     FIXTURES_PATH,
 )
-def test_fixtures(fixture_path):
+def test_fixtures_are_parseable(fixture_path):
     parse_python(read_file(fixture_path))

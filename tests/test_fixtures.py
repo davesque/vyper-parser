@@ -67,7 +67,7 @@ def assert_trees_equal(python_val, vyper_val):
     'fixture_path',
     FIXTURES_PATH,
 )
-def test_fixtures_trees_are_equivalent(fixture_path):
+def test_fixture_trees_are_equivalent(fixture_path):
     source_code = read_file(fixture_path)
 
     cst = parse_python(source_code)

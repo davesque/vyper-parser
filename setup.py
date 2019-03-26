@@ -15,6 +15,7 @@ extras_require = {
         "flake8==3.4.1",
         "isort>=4.2.15,<5",
         "pydocstyle>=3.0.0,<4",
+        "mypy==0.670",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",

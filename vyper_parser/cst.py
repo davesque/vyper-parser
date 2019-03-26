@@ -166,6 +166,23 @@ def make_constant_op_visitor(
     return op_visitor
 
 
+def make_op_token_visitor(
+    doc: str,
+    rule_name: str,
+    op_mapping: Dict[str, TAst],
+) -> Callable[[Any, Tree], TAst]:
+    def op_token_visitor(self, tree: Tree) -> TAst:
+        token = str(tree.children[0])
+        try:
+            return op_mapping[token]
+        except KeyError:
+            raise Exception(f'Invalid {rule_name}: {token}')
+
+    op_token_visitor.__doc__ = doc
+
+    return op_token_visitor
+
+
 TSeq = TypeVar('TSeq', Type[list], Type[tuple])
 
 

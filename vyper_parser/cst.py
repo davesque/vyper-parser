@@ -496,6 +496,24 @@ class CSTVisitor(Generic[TSeq]):
         'shift_op', SHIFT_OPS,
     )
 
+    MUL_OPS = {
+        '*': ast.Mult,
+        '@': ast.MatMult,
+        '/': ast.Div,
+        '%': ast.Mod,
+        '//': ast.FloorDiv,
+    }
+    visit_mul_op = make_op_token_visitor(
+        """
+        !mul_op: "*"|"@"|"/"|"%"|"//"
+
+        Analogous to:
+        get_operator
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
+        """,
+        'mul_op', MUL_OPS,
+    )
+
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))
 

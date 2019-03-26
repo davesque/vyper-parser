@@ -1,4 +1,6 @@
 from typing import (
+    Any,
+    Callable,
     Dict,
     Generic,
     Union,
@@ -142,6 +144,26 @@ def get_num_stmts(tree: Tree) -> int:
         return n
 
     raise Exception(f'Non-statement found: {typ} {num_children}')
+
+
+TAst = TypeVar('TAst', bound=ast.VyperAST)
+
+
+def make_constant_op_visitor(
+    doc: str,
+    ResultType: Type[TAst],
+    OpType: Type[ast.VyperAST],
+) -> Callable[[Any, Tree], TAst]:
+    def op_visitor(self, tree: Tree) -> TAst:
+        return ResultType(
+            OpType,
+            self._visit_children(tree),
+            **get_pos_kwargs(tree),
+        )
+
+    op_visitor.__doc__ = doc
+
+    return op_visitor
 
 
 TSeq = TypeVar('TSeq', Type[list], Type[tuple])

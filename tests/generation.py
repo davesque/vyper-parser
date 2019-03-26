@@ -3,8 +3,6 @@ from pathlib import (
 )
 from typing import (
     Any,
-    Iterator,
-    Tuple,
 )
 import os
 import sys
@@ -34,18 +32,11 @@ def find_fixture_files():
     return tuple(get_lib_path().glob('*.py'))
 
 
-def mark_fixtures(all_fixture_paths: Tuple[Path, ...]) -> Iterator[Path]:
-    for fixture_path in sorted(all_fixture_paths):
-        yield fixture_path
-
-
 def generate_fixture_tests(metafunc: Any) -> None:
     if 'fixture_path' in metafunc.fixturenames:
-        all_fixture_paths = tuple(mark_fixtures(
-            all_fixture_paths=find_fixture_files(),
-        ))
+        all_fixture_paths = sorted(find_fixture_files())
 
         if len(all_fixture_paths) == 0:
-            raise Exception("Invariant: found zero fixtures")
+            raise Exception('No fixtures found')
 
         metafunc.parametrize('fixture_path', all_fixture_paths, ids=get_id)

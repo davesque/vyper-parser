@@ -11,12 +11,12 @@ from .generation import (
     read_file,
 )
 
-FIXTURE_PATH = Path(__file__).parent / 'fixtures'
+FIXTURES_PATH = Path(__file__).parent / 'fixtures'
 
 
 @parametrize_python_fixtures(
     'fixture_path',
-    FIXTURE_PATH,
+    FIXTURES_PATH,
 )
 def test_fixtures(fixture_path):
     parse_python(read_file(fixture_path))

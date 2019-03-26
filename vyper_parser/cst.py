@@ -131,14 +131,8 @@ def get_num_stmts(tree: Tree) -> int:
 
 class NodeVisitor:
     def visit(self, node: LarkNode) -> Any:
-        if isinstance(node, Tree):
-            name = node.data
-        elif isinstance(node, Token):
-            name = node.type
-        else:
-            raise Exception('Unrecognized node type')
-
-        visitor = getattr(self, f'visit_{name}')
+        typ = get_node_type(node)
+        visitor = getattr(self, f'visit_{typ}')
 
         return visitor(node)
 

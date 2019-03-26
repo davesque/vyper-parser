@@ -157,64 +157,83 @@ class CSTVisitor(Generic[TSeq]):
 
         return visitor(node)
 
-    def _visit_first_child(self, tree: Tree) -> ast.VyperAST:
-        return self.visit(tree.children[0])
-
     def _visit_children(self, tree: Tree) -> TSeq:
         return self.seq_class(self.visit(ch) for ch in tree.children)
 
-    def _visit_first_child_or_children(self, tree: Tree) -> Union[ast.VyperAST, TSeq]:
-        if len(tree.children) == 1:
-            return self._visit_first_child(tree)
-        else:
-            return self._visit_children(tree)
-
     def visit_file_input(self, tree: Tree) -> ast.Module:
+        """
+        file_input: (_NEWLINE | stmt)*
+
+        Analogous to:
+        PyAST_FromNodeObject
+        https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L789-L817
+        """
         return ast.Module(self._visit_children(tree))
 
-    # def visit_simple_stmt(self, tree: Tree) -> TSeq:
-    #     return self._visit_children(tree)
+    def visit_expr_stmt(self, tree: Tree) -> ast.stmt:
+        """
+        expr_stmt: testlist_star_expr (annassign | augassign (yield_expr|testlist)
+                 | ("=" (yield_expr|testlist_star_expr))*)
+        annassign: ":" test ["=" test]
+        testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]
+        !augassign: ("+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|="
+                  | "^=" | "<<=" | ">>=" | "**=" | "//=")
+        test: ... here starts the operator precedence dance
 
-    # def visit_expr_stmt(self, tree: Tree) -> TSeq:
-    #     return self._visit_children(tree)
+        Analogous to:
+        ast_for_expr_stmt
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2902)
 
-    # def visit_compound_stmt(self, tree: Tree) -> ast.stmt:
-    #     return self.visit_first_child(tree)
+        Parses statements like:
+        * ``True``
+        * ``True, False``
+        * ``x: int = 5``
+        * ``x += 1``
+        """
+        if len(tree.children) == 1:
+            return ast.Expr(
+                self.visit(tree.children[0]),
+                **get_pos_kwargs(tree),
+            )
 
-    # def visit_testlist(self, tree: Tree) -> Union[ast.expr, TSeq]:
-    #     return self._visit_first_child_or_children(tree)
+    def visit_testlist_star_expr(self, tree: Tree) -> TSeq:
+        if len(tree.children) == 1:
+            return self.visit(tree.children[0])
+        else:
+            return ast.Tuple(
+                self._visit_children(tree),
+                ast.Load,
+                **get_pos_kwargs(tree),
+            )
 
-    # def visit_testlist_star_expr(self, tree: Tree) -> Union[ast.expr, TSeq]:
-    #     return self._visit_first_child_or_children(tree)
-
-    # def visit_test(self, tree: Tree) -> ast.BinOp:
-    #     return ast.IfExp(
-    #         self.visit(tree.children[1]),
-    #         self.visit(tree.children[0]),
-    #         self.visit(tree.children[2]),
-    #     )
-
-    # def visit_expr(self, tree: Tree) -> ast.BinOp:
-    #     return ast.BinOp(ast.BitOr, self._visit_children(tree))
-
-    # def visit_xor_expr(self, tree: Tree) -> ast.BinOp:
-    #     return ast.BinOp(ast.BitXor, self._visit_children(tree))
-
-    # def visit_and_expr(self, tree: Tree) -> ast.BinOp:
-    #     return ast.BinOp(ast.BitAnd, self._visit_children(tree))
+    def visit_test(self, tree: Tree) -> ast.Expr:
+        return ast.IfExp(
+            self.visit(tree.children[1]),
+            self.visit(tree.children[0]),
+            self.visit(tree.children[2]),
+            **get_pos_kwargs(tree),
+        )
 
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
-        pos = get_pos_kwargs(tree)
-        return ast.Expr(ast.Ellipsis(**pos), **pos)
+        return ast.Ellipsis(**get_pos_kwargs(tree))
 
     def visit_const_none(self, tree: Tree) -> ast.Expr:
-        pos = get_pos_kwargs(tree)
-        return ast.Expr(ast.NameConstant(None, **pos), **pos)
+        return ast.NameConstant(None, **get_pos_kwargs(tree))
 
     def visit_const_true(self, tree: Tree) -> ast.Expr:
-        pos = get_pos_kwargs(tree)
-        return ast.Expr(ast.NameConstant(True, **pos), **pos)
+        return ast.NameConstant(True, **get_pos_kwargs(tree))
 
     def visit_const_false(self, tree: Tree) -> ast.Expr:
-        pos = get_pos_kwargs(tree)
-        return ast.Expr(ast.NameConstant(False, **pos), **pos)
+        return ast.NameConstant(False, **get_pos_kwargs(tree))
+
+    def visit_lambdef(self, tree: Tree) -> ast.Lambda:
+        if len(tree.children) == 1:
+            # Lambda with no args
+            args = None
+            body = self.visit(tree.children[0])
+        else:
+            # Lambda with args
+            args = self.visit(tree.children[0])
+            body = self.visit(tree.children[1])
+
+        return ast.Lambda(args, body, **get_pos_kwargs(tree))

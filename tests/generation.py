@@ -8,8 +8,13 @@ from typing import (
 import pytest
 
 
-def get_id(fixture_path: Path) -> str:
-    return str(fixture_path.resolve())
+def read_file(path: Path) -> str:
+    with open(path, 'r') as f:
+        return f.read()
+
+
+def get_id(path: Path) -> str:
+    return str(path.resolve())
 
 
 def parametrize_python_fixtures(arg: str, path: Path) -> Any:

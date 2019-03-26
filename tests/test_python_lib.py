@@ -10,6 +10,7 @@ from vyper_parser.cst import (
 
 from .generation import (
     parametrize_python_fixtures,
+    read_file,
 )
 
 
@@ -22,11 +23,6 @@ def get_lib_path() -> Path:
         version_str = f'{major}.{minor}'
 
         return Path([x for x in sys.path if x.endswith(version_str)][0])
-
-
-def read_file(path):
-    with open(path, 'r') as f:
-        return f.read()
 
 
 @parametrize_python_fixtures(

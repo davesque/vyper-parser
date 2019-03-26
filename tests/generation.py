@@ -14,18 +14,13 @@ def get_id(fixture_path: Path) -> str:
 
 def get_lib_path():
     if os.name == 'nt':
-        # Special case for windows
-        if 'PyPy' in sys.version:
-            return Path(sys.prefix) / 'lib-python' / sys.winver
-        else:
-            return Path(sys.prefix) / 'Lib'
+        return Path(sys.prefix) / 'Lib'
+    else:
+        major = sys.version_info.major
+        minor = sys.version_info.minor
+        version_str = f'{major}.{minor}'
 
-    # General case
-    major = sys.version_info.major
-    minor = sys.version_info.minor
-    version_str = f'{major}.{minor}'
-
-    return Path([x for x in sys.path if x.endswith(version_str)][0])
+        return Path([x for x in sys.path if x.endswith(version_str)][0])
 
 
 def find_fixture_files():

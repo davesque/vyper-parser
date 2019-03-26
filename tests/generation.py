@@ -5,8 +5,9 @@ from pathlib import (
 import sys
 from typing import (
     Any,
-    Tuple,
 )
+
+import pytest
 
 
 def get_lib_path() -> Path:
@@ -20,19 +21,13 @@ def get_lib_path() -> Path:
         return Path([x for x in sys.path if x.endswith(version_str)][0])
 
 
-def find_fixture_files() -> Tuple[Path, ...]:
-    return tuple(get_lib_path().glob('*.py'))
-
-
 def get_id(fixture_path: Path) -> str:
     return str(fixture_path.resolve())
 
 
-def generate_fixture_tests(metafunc: Any) -> None:
-    if 'fixture_path' in metafunc.fixturenames:
-        all_fixture_paths = sorted(find_fixture_files())
-
-        if len(all_fixture_paths) == 0:
-            raise Exception('No fixtures found')
-
-        metafunc.parametrize('fixture_path', all_fixture_paths, ids=get_id)
+def parametrize_python_fixtures(arg: str, path: Path) -> Any:
+    return pytest.mark.parametrize(
+        arg,
+        sorted(path.glob('*.py')),
+        ids=get_id,
+    )

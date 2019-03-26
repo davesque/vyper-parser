@@ -166,7 +166,7 @@ class CSTVisitor(Generic[TSeq]):
 
         Analogous to:
         PyAST_FromNodeObject
-        https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L789-L817
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L789-L817)
         """
         return ast.Module(self._visit_children(tree))
 

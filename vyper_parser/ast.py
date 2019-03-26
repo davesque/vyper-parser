@@ -77,12 +77,17 @@ class FunctionDef(stmt):
                  args: 'arguments',
                  body: StmtSeq,
                  decorator_list: ExprSeq,
-                 returns: 'expr' = None):
+                 returns: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.name = name
         self.args = args
         self.body = body
         self.decorator_list = decorator_list
         self.returns = returns
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class AsyncFunctionDef(stmt):
@@ -93,12 +98,17 @@ class AsyncFunctionDef(stmt):
                  args: 'arguments',
                  body: StmtSeq,
                  decorator_list: ExprSeq,
-                 returns: 'expr' = None):
+                 returns: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.name = name
         self.args = args
         self.body = body
         self.decorator_list = decorator_list
         self.returns = returns
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class ClassDef(stmt):
@@ -109,28 +119,43 @@ class ClassDef(stmt):
                  bases: ExprSeq,
                  keywords: KeywordSeq,
                  body: StmtSeq,
-                 decorator_list: ExprSeq):
+                 decorator_list: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.name = name
         self.bases = bases
         self.keywords = keywords
         self.body = body
         self.decorator_list = decorator_list
 
+        super().__init__(lineno=lineno, col_offset=col_offset)
+
 
 class Return(stmt):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: 'expr' = None):
+                 value: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Delete(stmt):
     __slots__ = ('targets',)
 
     def __init__(self,
-                 targets: ExprSeq):
+                 targets: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.targets = targets
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Assign(stmt):
@@ -138,9 +163,14 @@ class Assign(stmt):
 
     def __init__(self,
                  targets: ExprSeq,
-                 value: 'expr'):
+                 value: 'expr',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.targets = targets
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class AugAssign(stmt):
@@ -149,10 +179,15 @@ class AugAssign(stmt):
     def __init__(self,
                  target: 'expr',
                  op: Type['operator'],
-                 value: 'expr'):
+                 value: 'expr',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.target = target
         self.op = op
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class AnnAssign(stmt):
@@ -162,11 +197,16 @@ class AnnAssign(stmt):
                  target: 'expr',
                  annotation: 'expr',
                  simple: bool,
-                 value: 'expr' = None):
+                 value: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.target = target
         self.annotation = annotation
         self.simple = simple
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class For(stmt):
@@ -176,11 +216,16 @@ class For(stmt):
                  target: 'expr',
                  iter: 'expr',
                  body: StmtSeq,
-                 orelse: StmtSeq):
+                 orelse: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.target = target
         self.iter = iter
         self.body = body
         self.orelse = orelse
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class AsyncFor(stmt):
@@ -190,11 +235,16 @@ class AsyncFor(stmt):
                  target: 'expr',
                  iter: 'expr',
                  body: StmtSeq,
-                 orelse: StmtSeq):
+                 orelse: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.target = target
         self.iter = iter
         self.body = body
         self.orelse = orelse
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class While(stmt):
@@ -203,10 +253,15 @@ class While(stmt):
     def __init__(self,
                  test: 'expr',
                  body: StmtSeq,
-                 orelse: StmtSeq):
+                 orelse: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.test = test
         self.body = body
         self.orelse = orelse
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class If(stmt):
@@ -215,10 +270,15 @@ class If(stmt):
     def __init__(self,
                  test: 'expr',
                  body: StmtSeq,
-                 orelse: StmtSeq):
+                 orelse: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.test = test
         self.body = body
         self.orelse = orelse
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class With(stmt):
@@ -226,9 +286,14 @@ class With(stmt):
 
     def __init__(self,
                  items: WithItemSeq,
-                 body: StmtSeq):
+                 body: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.items = items
         self.body = body
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class AsyncWith(stmt):
@@ -236,9 +301,14 @@ class AsyncWith(stmt):
 
     def __init__(self,
                  items: WithItemSeq,
-                 body: StmtSeq):
+                 body: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.items = items
         self.body = body
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Raise(stmt):
@@ -246,9 +316,14 @@ class Raise(stmt):
 
     def __init__(self,
                  exc: 'expr' = None,
-                 cause: 'expr' = None):
+                 cause: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.exc = exc
         self.cause = cause
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Try(stmt):
@@ -258,11 +333,16 @@ class Try(stmt):
                  body: StmtSeq,
                  handlers: ExceptHandlerSeq,
                  orelse: StmtSeq,
-                 finalbody: StmtSeq):
+                 finalbody: StmtSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.body = body
         self.handlers = handlers
         self.orelse = orelse
         self.finalbody = finalbody
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Assert(stmt):
@@ -270,17 +350,27 @@ class Assert(stmt):
 
     def __init__(self,
                  test: 'expr',
-                 msg: 'expr' = None):
+                 msg: 'expr' = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.test = test
         self.msg = msg
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Import(stmt):
     __slots__ = ('names',)
 
     def __init__(self,
-                 names: AliasSeq):
+                 names: AliasSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.names = names
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class ImportFrom(stmt):
@@ -289,34 +379,54 @@ class ImportFrom(stmt):
     def __init__(self,
                  names: AliasSeq,
                  module: identifier = None,
-                 level: int = None):
+                 level: int = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.names = names
         self.module = module
         self.level = level
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Global(stmt):
     __slots__ = ('names',)
 
     def __init__(self,
-                 names: IdentifierSeq):
+                 names: IdentifierSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.names = names
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Nonlocal(stmt):
     __slots__ = ('names',)
 
     def __init__(self,
-                 names: IdentifierSeq):
+                 names: IdentifierSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.names = names
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Expr(stmt):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: 'expr'):
+                 value: 'expr',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Pass(stmt):
@@ -340,9 +450,14 @@ class BoolOp(expr):
 
     def __init__(self,
                  op: Type['boolop'],
-                 values: ExprSeq):
+                 values: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.op = op
         self.values = values
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class BinOp(expr):
@@ -351,10 +466,15 @@ class BinOp(expr):
     def __init__(self,
                  left: expr,
                  op: Type['operator'],
-                 right: expr):
+                 right: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.left = left
         self.op = op
         self.right = right
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class UnaryOp(expr):
@@ -362,9 +482,14 @@ class UnaryOp(expr):
 
     def __init__(self,
                  op: Type['unaryop'],
-                 operand: expr):
+                 operand: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.op = op
         self.operand = operand
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Lambda(expr):
@@ -372,9 +497,14 @@ class Lambda(expr):
 
     def __init__(self,
                  args: 'arguments',
-                 body: expr):
+                 body: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.args = args
         self.body = body
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class IfExp(expr):
@@ -383,10 +513,15 @@ class IfExp(expr):
     def __init__(self,
                  test: expr,
                  body: expr,
-                 orelse: expr):
+                 orelse: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.test = test
         self.body = body
         self.orelse = orelse
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Dict(expr):
@@ -394,17 +529,27 @@ class Dict(expr):
 
     def __init__(self,
                  keys: ExprSeq,
-                 values: ExprSeq):
+                 values: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.keys = keys
         self.values = values
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Set(expr):
     __slots__ = ('elts',)
 
     def __init__(self,
-                 elts: ExprSeq):
+                 elts: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elts = elts
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class ListComp(expr):
@@ -412,9 +557,14 @@ class ListComp(expr):
 
     def __init__(self,
                  elt: expr,
-                 generators: ComprehensionSeq):
+                 generators: ComprehensionSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elt = elt
         self.generators = generators
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class SetComp(expr):
@@ -422,9 +572,14 @@ class SetComp(expr):
 
     def __init__(self,
                  elt: expr,
-                 generators: ComprehensionSeq):
+                 generators: ComprehensionSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elt = elt
         self.generators = generators
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class DictComp(expr):
@@ -433,10 +588,15 @@ class DictComp(expr):
     def __init__(self,
                  key: expr,
                  value: expr,
-                 generators: ComprehensionSeq):
+                 generators: ComprehensionSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.key = key
         self.value = value
         self.generators = generators
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class GeneratorExp(expr):
@@ -444,33 +604,53 @@ class GeneratorExp(expr):
 
     def __init__(self,
                  elt: expr,
-                 generators: ComprehensionSeq):
+                 generators: ComprehensionSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elt = elt
         self.generators = generators
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Await(expr):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: expr):
+                 value: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Yield(expr):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: expr = None):
+                 value: expr = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class YieldFrom(expr):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: expr):
+                 value: expr,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Compare(expr):
@@ -479,10 +659,15 @@ class Compare(expr):
     def __init__(self,
                  left: expr,
                  ops: CmpOpSeq,
-                 comparators: ExprSeq):
+                 comparators: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.left = left
         self.ops = ops
         self.comparators = comparators
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Call(expr):
@@ -491,26 +676,41 @@ class Call(expr):
     def __init__(self,
                  func: expr,
                  args: ExprSeq,
-                 keywords: KeywordSeq):
+                 keywords: KeywordSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.func = func
         self.args = args
         self.keywords = keywords
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Num(expr):
     __slots__ = ('n',)
 
     def __init__(self,
-                 n: Union[int, float]):
+                 n: Union[int, float],
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.n = n
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Str(expr):
     __slots__ = ('s',)
 
     def __init__(self,
-                 s: str):
+                 s: str,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.s = s
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class FormattedValue(expr):
@@ -519,34 +719,54 @@ class FormattedValue(expr):
     def __init__(self,
                  value: expr,
                  conversion: int = None,
-                 format_spec: expr = None):
+                 format_spec: expr = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
         self.conversion = conversion
         self.format_spec = format_spec
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class JoinedStr(expr):
     __slots__ = ('values',)
 
     def __init__(self,
-                 values: ExprSeq):
+                 values: ExprSeq,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.values = values
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Bytes(expr):
     __slots__ = ('s',)
 
     def __init__(self,
-                 s: bytes):
+                 s: bytes,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.s = s
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class NameConstant(expr):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: singleton):
+                 value: singleton,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Ellipsis(expr):
@@ -557,8 +777,13 @@ class Constant(expr):
     __slots__ = ('value',)
 
     def __init__(self,
-                 value: constant):
+                 value: constant,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Attribute(expr):
@@ -567,10 +792,15 @@ class Attribute(expr):
     def __init__(self,
                  value: expr,
                  attr: identifier,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
         self.attr = attr
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Subscript(expr):
@@ -579,10 +809,15 @@ class Subscript(expr):
     def __init__(self,
                  value: expr,
                  slice: slice,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
         self.slice = slice
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Starred(expr):
@@ -590,9 +825,14 @@ class Starred(expr):
 
     def __init__(self,
                  value: expr,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.value = value
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Name(expr):
@@ -600,9 +840,14 @@ class Name(expr):
 
     def __init__(self,
                  id: identifier,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.id = id
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class List(expr):
@@ -610,9 +855,14 @@ class List(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elts = elts
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class Tuple(expr):
@@ -620,9 +870,14 @@ class Tuple(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: 'expr_context'):
+                 ctx: 'expr_context',
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.elts = elts
         self.ctx = ctx
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class expr_context(VyperAST):
@@ -841,10 +1096,15 @@ class ExceptHandler(excepthandler):
     def __init__(self,
                  body: StmtSeq,
                  type: expr = None,
-                 name: identifier = None):
+                 name: identifier = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.body = body
         self.type = type
         self.name = name
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class arguments(VyperAST):
@@ -870,9 +1130,14 @@ class arg(PosAttributes, VyperAST):
 
     def __init__(self,
                  arg: identifier,
-                 annotation: expr = None):
+                 annotation: expr = None,
+                 *,
+                 lineno: int = None,
+                 col_offset: int = None):
         self.arg = arg
         self.annotation = annotation
+
+        super().__init__(lineno=lineno, col_offset=col_offset)
 
 
 class keyword(VyperAST):

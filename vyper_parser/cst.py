@@ -307,28 +307,33 @@ class CSTVisitor(Generic[TSeq]):
 
     visit_lambdef_nocond = visit_lambdef
 
-    visit_or_test = make_constant_op_visitor(
+    def visit_or_test(self, tree: Tree) -> ast.BoolOp:
         """
         ?or_test: and_test ("or" and_test)*
 
         Analogous to:
         ast_for_expr
         (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2580-L2599)
-        """,
-        ast.BoolOp, ast.Or,
+        """
+        return ast.BoolOp(
+            ast.Or,
+            self._visit_children(tree),
+            **get_pos_kwargs(tree),
+        )
 
-    )
-
-    visit_and_test = make_constant_op_visitor(
+    def visit_and_test(self, tree: Tree) -> ast.BoolOp:
         """
         ?and_test: not_test ("and" not_test)*
 
         Analogous to:
         ast_for_expr
         (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2580-L2599)
-        """,
-        ast.BoolOp, ast.And,
-    )
+        """
+        return ast.BoolOp(
+            ast.And,
+            self._visit_children(tree),
+            **get_pos_kwargs(tree),
+        )
 
     def visit_not(self, tree: Tree) -> ast.UnaryOp:
         """

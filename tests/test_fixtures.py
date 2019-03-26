@@ -11,7 +11,6 @@ from .generation import (
     read_file,
 )
 
-
 FIXTURE_PATH = Path(__file__).parent / 'fixtures'
 
 

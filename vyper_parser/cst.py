@@ -1,6 +1,9 @@
 from typing import (
-    Any,
+    Dict,
+    Generic,
     Union,
+    Type,
+    TypeVar,
 )
 
 from lark import (
@@ -34,6 +37,7 @@ parser = Lark.open(
     rel_to=__file__,
     postlex=PythonIndenter(),
     start='file_input',
+    propagate_positions=True,
 )
 
 
@@ -54,7 +58,18 @@ def get_node_type(node: LarkNode) -> str:
         raise Exception('Unrecognized node type')
 
 
-def require_node_type(node: LarkNode, typ: str) -> None:
+def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
+    """
+    Returns a dictionary containing positional kwargs based on the parsing
+    position of ``node``.
+    """
+    return {
+        'lineno': node.line,
+        'col_offset': node.column - 1,
+    }
+
+
+def assert_node_type(node: LarkNode, typ: str) -> None:
     """
     Asserts that the given node was matched by a certain grammar rule.
     """
@@ -129,20 +144,77 @@ def get_num_stmts(tree: Tree) -> int:
     raise Exception(f'Non-statement found: {typ} {num_children}')
 
 
-class NodeVisitor:
-    def visit(self, node: LarkNode) -> Any:
+TSeq = TypeVar('TSeq', Type[list], Type[tuple])
+
+
+class CSTVisitor(Generic[TSeq]):
+    def __init__(self, seq_class: TSeq = tuple):
+        self.seq_class = seq_class
+
+    def visit(self, node: LarkNode) -> ast.VyperAST:
         typ = get_node_type(node)
         visitor = getattr(self, f'visit_{typ}')
 
         return visitor(node)
 
+    def _visit_first_child(self, tree: Tree) -> ast.VyperAST:
+        return self.visit(tree.children[0])
 
-class CSTVisitor(NodeVisitor):
+    def _visit_children(self, tree: Tree) -> TSeq:
+        return self.seq_class(self.visit(ch) for ch in tree.children)
+
+    def _visit_first_child_or_children(self, tree: Tree) -> Union[ast.VyperAST, TSeq]:
+        if len(tree.children) == 1:
+            return self._visit_first_child(tree)
+        else:
+            return self._visit_children(tree)
+
     def visit_file_input(self, tree: Tree) -> ast.Module:
-        stmts = []
+        return ast.Module(self._visit_children(tree))
 
-        for ch in tree.children:
-            require_node_type(ch, 'stmt')
-            stmts.append(self.visit(ch))
+    # def visit_simple_stmt(self, tree: Tree) -> TSeq:
+    #     return self._visit_children(tree)
 
-        return ast.Module(stmts)
+    # def visit_expr_stmt(self, tree: Tree) -> TSeq:
+    #     return self._visit_children(tree)
+
+    # def visit_compound_stmt(self, tree: Tree) -> ast.stmt:
+    #     return self.visit_first_child(tree)
+
+    # def visit_testlist(self, tree: Tree) -> Union[ast.expr, TSeq]:
+    #     return self._visit_first_child_or_children(tree)
+
+    # def visit_testlist_star_expr(self, tree: Tree) -> Union[ast.expr, TSeq]:
+    #     return self._visit_first_child_or_children(tree)
+
+    # def visit_test(self, tree: Tree) -> ast.BinOp:
+    #     return ast.IfExp(
+    #         self.visit(tree.children[1]),
+    #         self.visit(tree.children[0]),
+    #         self.visit(tree.children[2]),
+    #     )
+
+    # def visit_expr(self, tree: Tree) -> ast.BinOp:
+    #     return ast.BinOp(ast.BitOr, self._visit_children(tree))
+
+    # def visit_xor_expr(self, tree: Tree) -> ast.BinOp:
+    #     return ast.BinOp(ast.BitXor, self._visit_children(tree))
+
+    # def visit_and_expr(self, tree: Tree) -> ast.BinOp:
+    #     return ast.BinOp(ast.BitAnd, self._visit_children(tree))
+
+    def visit_ellipsis(self, tree: Tree) -> ast.Expr:
+        pos = get_pos_kwargs(tree)
+        return ast.Expr(ast.Ellipsis(**pos), **pos)
+
+    def visit_const_none(self, tree: Tree) -> ast.Expr:
+        pos = get_pos_kwargs(tree)
+        return ast.Expr(ast.NameConstant(None, **pos), **pos)
+
+    def visit_const_true(self, tree: Tree) -> ast.Expr:
+        pos = get_pos_kwargs(tree)
+        return ast.Expr(ast.NameConstant(True, **pos), **pos)
+
+    def visit_const_false(self, tree: Tree) -> ast.Expr:
+        pos = get_pos_kwargs(tree)
+        return ast.Expr(ast.NameConstant(False, **pos), **pos)

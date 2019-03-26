@@ -386,6 +386,39 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
+    visit_expr = make_constant_op_visitor(
+        """
+        ?expr: xor_expr ("|" xor_expr)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
+        """,
+        ast.BinOp, ast.BitOr,
+    )
+
+    visit_xor_expr = make_constant_op_visitor(
+        """
+        ?xor_expr: and_expr ("^" and_expr)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
+        """,
+        ast.BinOp, ast.BitXor,
+    )
+
+    visit_and_expr = make_constant_op_visitor(
+        """
+        ?and_expr: shift_expr ("&" shift_expr)*
+
+        Analogous to:
+        ast_for_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
+        """,
+        ast.BinOp, ast.BitAnd,
+    )
+
     COMP_OPS = {
         ('<',): ast.Lt,
         ('>',): ast.Gt,
@@ -416,6 +449,52 @@ class CSTVisitor(Generic[TSeq]):
             return self.COMP_OPS[tokens]
         except KeyError:
             raise Exception(f'Invalid comp_op: {tokens}')
+
+    FACTOR_OPS = {
+        '+': ast.UAdd,
+        '-': ast.USub,
+        '~': ast.Invert,
+    }
+    visit_factor_op = make_op_token_visitor(
+        """
+        !factor_op: "+"|"-"|"~"
+
+        Analogous to:
+        ast_for_factor
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2438)
+        """,
+        'factor_op', FACTOR_OPS,
+    )
+
+    ADD_OPS = {
+        '+': ast.Add,
+        '-': ast.Sub,
+    }
+    visit_add_op = make_op_token_visitor(
+        """
+        !add_op: "+"|"-"
+
+        Analogous to:
+        get_operator
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
+        """,
+        'add_op', ADD_OPS,
+    )
+
+    SHIFT_OPS = {
+        '<<': ast.LShift,
+        '>>': ast.RShift,
+    }
+    visit_shift_op = make_op_token_visitor(
+        """
+        !shift_op: "<<"|">>"
+
+        Analogous to:
+        get_operator
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L898)
+        """,
+        'shift_op', SHIFT_OPS,
+    )
 
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))

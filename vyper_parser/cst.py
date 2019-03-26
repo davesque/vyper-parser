@@ -146,47 +146,6 @@ def get_num_stmts(tree: Tree) -> int:
     raise Exception(f'Non-statement found: {typ} {num_children}')
 
 
-def make_bin_op_visitor(
-    doc: str,
-    OpType: Type[ast.operator],
-) -> Callable[[Any, Tree], ast.BinOp]:
-    """
-    This generates CST conversion functions for bin op matches.  It mirrors the
-    code found here:
-
-    https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2310
-    """
-    def bin_op_visitor(self, tree: Tree) -> ast.BinOp:
-        left, op, right = tree.children[:2]
-
-        result = ast.BinOp(
-            self.visit(left),
-            self.visit(op),
-            self.visit(right),
-            **get_pos_kwargs(tree),
-        )
-
-        num_ops = (len(tree.children) - 1) // 2
-        for i in range(1, num_ops):
-            next_op = tree.children[i * 2 + 1]
-            next_expr = tree.children[i * 2 + 2]
-
-            tmp_result = ast.BinOp(
-                result,
-                self.visit(next_op),
-                self.visit(next_expr),
-                **get_pos_kwargs(next_op),
-            )
-
-            result = tmp_result
-
-        return result
-
-    bin_op_visitor.__doc__ = doc
-
-    return bin_op_visitor
-
-
 TAst = TypeVar('TAst', bound=ast.VyperAST)
 
 
@@ -415,38 +374,46 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
-    visit_expr = make_bin_op_visitor(
+    def _visit_bin_op(self, tree: Tree) -> ast.BinOp:
         """
         ?expr: xor_expr ("|" xor_expr)*
-
-        Analogous to:
-        ast_for_expr
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
-        """,
-        ast.BitOr,
-    )
-
-    visit_xor_expr = make_bin_op_visitor(
-        """
         ?xor_expr: and_expr ("^" and_expr)*
-
-        Analogous to:
-        ast_for_expr
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
-        """,
-        ast.BitXor,
-    )
-
-    visit_and_expr = make_bin_op_visitor(
-        """
         ?and_expr: shift_expr ("&" shift_expr)*
+        ?shift_expr: arith_expr (shift_op arith_expr)*
 
         Analogous to:
-        ast_for_expr
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2661-L2671)
-        """,
-        ast.BitAnd,
-    )
+        ast_for_binop
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2310)
+        """
+        left, op, right = tree.children[:2]
+
+        result = ast.BinOp(
+            self.visit(left),
+            self.visit(op),
+            self.visit(right),
+            **get_pos_kwargs(tree),
+        )
+
+        num_ops = (len(tree.children) - 1) // 2
+        for i in range(1, num_ops):
+            next_op = tree.children[i * 2 + 1]
+            next_expr = tree.children[i * 2 + 2]
+
+            tmp_result = ast.BinOp(
+                result,
+                self.visit(next_op),
+                self.visit(next_expr),
+                **get_pos_kwargs(next_op),
+            )
+
+            result = tmp_result
+
+        return result
+
+    visit_expr = _visit_bin_op
+    visit_xor_expr = _visit_bin_op
+    visit_and_expr = _visit_bin_op
+    visit_shift_expr = _visit_bin_op
 
     FACTOR_OPS = {
         '+': ast.UAdd,

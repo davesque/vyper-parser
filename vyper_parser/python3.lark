@@ -98,7 +98,7 @@ star_expr: "*" expr
 ?shift_expr: arith_expr (shift_op arith_expr)*
 ?arith_expr: term (add_op term)*
 ?term: factor (mul_op factor)*
-factor: factor_op factor | power
+?factor: factor_op factor | power
 
 !factor_op: "+"|"-"|"~"
 !add_op: "+"|"-"

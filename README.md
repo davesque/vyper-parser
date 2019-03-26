@@ -1,5 +1,7 @@
 # vyper-parser
 
+[![Build Status](https://circleci.com/gh/davesque/vyper-parser.svg?style=shield)](https://circleci.com/gh/davesque/vyper-parser)
+
 An experimental parser for [vyper](https://github.com/ethereum/vyper).
 
 ## Developer Setup

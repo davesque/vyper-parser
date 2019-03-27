@@ -441,23 +441,6 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
-    def visit_power(self, tree: Tree) -> ast.BinOp:
-        """
-        ?power: await_expr ["**" factor]
-
-        Analogous to:
-        ast_for_power
-        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2507)
-        """
-        left, right = tree.children
-
-        return ast.BinOp(
-            self.visit(left),
-            ast.Pow,
-            self.visit(right),
-            **get_pos_kwargs(tree),
-        )
-
     FACTOR_OPS = {
         '+': ast.UAdd,
         '-': ast.USub,
@@ -527,6 +510,23 @@ class CSTVisitor(Generic[TSeq]):
             return self.COMP_OPS[tokens]
         except KeyError:
             raise Exception(f'Invalid comp_op: {tokens}')
+
+    def visit_power(self, tree: Tree) -> ast.BinOp:
+        """
+        ?power: await_expr ["**" factor]
+
+        Analogous to:
+        ast_for_power
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2507)
+        """
+        left, right = tree.children
+
+        return ast.BinOp(
+            self.visit(left),
+            ast.Pow,
+            self.visit(right),
+            **get_pos_kwargs(tree),
+        )
 
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))

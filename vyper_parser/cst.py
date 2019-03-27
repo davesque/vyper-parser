@@ -417,6 +417,40 @@ class CSTVisitor(Generic[TSeq]):
     visit_arith_expr = _visit_bin_op
     visit_term = _visit_bin_op
 
+    def visit_factor(self, tree: Tree) -> ast.UnaryOp:
+        """
+        ?factor: factor_op factor | power
+        !factor_op: "+"|"-"|"~"
+
+        Analogous to:
+        ast_for_factor
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2438)
+        """
+        op, operand = tree.children
+
+        return ast.UnaryOp(
+            self.visit(op),
+            self.visit(operand),
+            **get_pos_kwargs(tree),
+        )
+
+    def visit_power(self, tree: Tree) -> ast.BinOp:
+        """
+        ?power: await_expr ["**" factor]
+
+        Analogous to:
+        ast_for_power
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2507)
+        """
+        left, right = tree.children
+
+        return ast.BinOp(
+            self.visit(left),
+            ast.Pow,
+            self.visit(right),
+            **get_pos_kwargs(tree),
+        )
+
     FACTOR_OPS = {
         '+': ast.UAdd,
         '-': ast.USub,

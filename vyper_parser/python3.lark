@@ -108,7 +108,7 @@ star_expr: "*" expr
 // sake of a __future__ import described in PEP 401 (which really works :-)
 !comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
 
-power: await_expr ["**" factor]
+?power: await_expr ["**" factor]
 await_expr: AWAIT? atom_expr
 AWAIT: "await"
 

@@ -528,6 +528,29 @@ class CSTVisitor(Generic[TSeq]):
             **get_pos_kwargs(tree),
         )
 
+    def visit_await_expr(self, tree: Tree) -> ast.Await:
+        """
+        await_expr: AWAIT? atom_expr
+        AWAIT: "await"
+
+        Analogous to:
+        ast_for_atom_expr
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2463)
+        """
+        if len(tree.children) == 1:
+            # Is just an atom_expr with no "await" keyword
+            atom_expr = tree.children[0]
+            return self.visit(atom_expr)
+
+        # Otherwise, has "await" keyword
+        await_str, value = tree.children
+        assert str(await_str) == 'await'
+
+        return ast.Await(
+            self.visit(value),
+            **get_pos_kwargs(tree),
+        )
+
     def visit_ellipsis(self, tree: Tree) -> ast.Expr:
         return ast.Ellipsis(**get_pos_kwargs(tree))
 

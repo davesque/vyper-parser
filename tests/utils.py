@@ -12,7 +12,7 @@ def assert_trees_equal(python_val, vyper_val, check_pos=True):
     # Assert sequences are equal
     if isinstance(python_val, (list, tuple)):
         for x, y in zip(python_val, vyper_val):
-            assert_trees_equal(x, y)
+            assert_trees_equal(x, y, check_pos)
 
     # Assert analogous node classes are equal
     elif isinstance(python_val, python_ast.AST):
@@ -34,7 +34,7 @@ def assert_trees_equal(python_val, vyper_val, check_pos=True):
             python_field = getattr(python_val, field)
             vyper_field = getattr(vyper_val, field)
 
-            assert_trees_equal(python_field, vyper_field)
+            assert_trees_equal(python_field, vyper_field, check_pos)
 
     # Assert normal values are equal
     else:

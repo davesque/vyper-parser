@@ -39,4 +39,4 @@ def test_fixture_trees_are_equivalent(fixture_path):
 
     python_node = python_ast.parse(source_code)
 
-    assert_trees_equal(python_node, vyper_node)
+    assert_trees_equal(python_node, vyper_node, check_pos=False)

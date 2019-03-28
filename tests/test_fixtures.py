@@ -45,11 +45,11 @@ def assert_trees_equal(python_val, vyper_val):
         assert python_typ == vyper_typ
 
         # Parsing positions are the same
-        if isinstance(vyper_val, vyper_ast.PosAttributes):
-            assert python_val.lineno == vyper_val.lineno
-            assert python_val.col_offset == vyper_val.col_offset
-        else:
-            assert python_val._attributes == ()
+        # if isinstance(vyper_val, vyper_ast.PosAttributes):
+        #     assert python_val.lineno == vyper_val.lineno
+        #     assert python_val.col_offset == vyper_val.col_offset
+        # else:
+        #     assert python_val._attributes == ()
 
         # Node fields are the same
         for field in python_val._fields:

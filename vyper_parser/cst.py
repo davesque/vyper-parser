@@ -107,53 +107,43 @@ def get_pretty_lark_repr(node: LarkNode, indent: int = 0) -> str:
     return s
 
 
-def get_pretty_python_ast_repr(val: Any,
-                               indent_repr: str = '',
-                               alt_indent_repr: str = '',
-                               indent_sep: str = ': ') -> str:
+def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
     """
     Returns a pretty-printed string representation of a python AST.
     """
     if isinstance(val, (list, tuple)) and len(val) > 0:
-        s = f'{indent_repr}['
+        s = '['
         for i in val:
-            s += '\n' + get_pretty_python_ast_repr(
-                i,
-                alt_indent_repr + indent_sep,
-                alt_indent_repr + indent_sep,
-                indent_sep,
-            ) + ','
-        s += f'\n{alt_indent_repr}]'
+            i_repr = get_pretty_python_ast_repr(i, indent_sep)
+            i_repr_lines = i_repr.splitlines()
+
+            s += f'\n{indent_sep}' + f'\n{indent_sep}'.join(i_repr_lines) + ','
+        s += '\n]'
     elif isinstance(val, python_ast.AST):
         node = val
         if hasattr(node, 'lineno'):
-            pos_repr = f'<line {node.lineno}, col {node.col_offset}>'
+            pos_repr = f'  <line {node.lineno}, col {node.col_offset}>'
         else:
             pos_repr = ''
 
         fields = node._fields
         if len(fields) > 0:
-            s = f'{indent_repr}{node.__class__.__name__}(  {pos_repr}'
+            s = f'{node.__class__.__name__}({pos_repr}'
+            for field_name in fields:
+                field_val = getattr(node, field_name)
+                f_repr = get_pretty_python_ast_repr(field_val, indent_sep)
+                f_repr_lines = f_repr.splitlines()
 
-            max_ch_len = max(len(f) for f in fields)
+                field_name_eq = f'{field_name}='
+                first_line_prefix = f'\n{indent_sep}{field_name_eq}'
+                other_line_prefix = f'\n{indent_sep}' + ' ' * len(field_name_eq)
 
-            for i, f in enumerate(fields):
-                ch = getattr(node, f)
-                ch_indent_repr = indent_repr + indent_sep + f.ljust(max_ch_len) + '='
-                ch_alt_indent_repr = alt_indent_repr + indent_sep + ' ' * max_ch_len + ' '
-
-                s += '\n' + get_pretty_python_ast_repr(
-                    ch,
-                    ch_indent_repr,
-                    ch_alt_indent_repr,
-                    indent_sep,
-                ) + ','
-
-            s += f'\n{alt_indent_repr})'
+                s += first_line_prefix + other_line_prefix.join(f_repr_lines) + ','
+            s += f'\n)'
         else:
-            s = f'{indent_repr}{node.__class__.__name__}  {pos_repr}'
+            s = f'{node.__class__.__name__}{pos_repr}'
     else:
-        s = f'{indent_repr}{repr(val)}'
+        s = repr(val)
 
     return s
 

@@ -10,7 +10,9 @@ from lark.tree import (
     Tree,
 )
 
-from .types import LarkNode
+from vyper_parser.types import (
+    LarkNode,
+)
 
 
 def get_pretty_lark_repr(node: LarkNode,

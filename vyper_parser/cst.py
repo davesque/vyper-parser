@@ -18,8 +18,12 @@ from lark.tree import (
     Tree,
 )
 
-from . import ast
-from .types import LarkNode
+from vyper_parser import (
+    ast,
+)
+from vyper_parser.types import (
+    LarkNode,
+)
 
 
 class PythonIndenter(Indenter):

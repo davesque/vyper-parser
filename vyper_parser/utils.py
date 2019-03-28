@@ -10,6 +10,9 @@ from lark.tree import (
     Tree,
 )
 
+from vyper_parser import (
+    ast as vyper_ast,
+)
 from vyper_parser.types import (
     LarkNode,
 )
@@ -64,31 +67,38 @@ def parse_and_print_lark(source_code: str) -> None:
     pretty_print_lark(parse_python(source_code))
 
 
-def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
+def get_pretty_ast_repr(val: Any, indent_sep: str = ': ') -> str:
     """
-    Returns a pretty-printed string representation of a python AST.
+    Returns a pretty-printed string representation of an AST.
     """
     if isinstance(val, (list, tuple)) and len(val) > 0:
         s = '['
         for i in val:
-            i_repr = get_pretty_python_ast_repr(i, indent_sep)
+            i_repr = get_pretty_ast_repr(i, indent_sep)
             i_repr_lines = i_repr.splitlines()
 
             s += f'\n{indent_sep}' + f'\n{indent_sep}'.join(i_repr_lines) + ','
         s += '\n]'
-    elif isinstance(val, python_ast.AST):
+    elif isinstance(val, (python_ast.AST, vyper_ast.VyperAST)):
         node = val
         if hasattr(node, 'lineno'):
             pos_repr = f'  <line {node.lineno}, col {node.col_offset}>'
         else:
             pos_repr = ''
 
-        fields = node._fields
+        try:
+            fields = node._fields
+        except AttributeError:
+            try:
+                fields = node.__slots__
+            except AttributeError:
+                fields = ()
+
         if len(fields) > 0:
             s = f'{node.__class__.__name__}({pos_repr}'
             for field_name in fields:
                 field_val = getattr(node, field_name)
-                f_repr = get_pretty_python_ast_repr(field_val, indent_sep)
+                f_repr = get_pretty_ast_repr(field_val, indent_sep)
                 f_repr_lines = f_repr.splitlines()
 
                 field_name_eq = f'{field_name}='
@@ -105,15 +115,15 @@ def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
     return s
 
 
-def pretty_print_python(node: python_ast.AST) -> None:
+def pretty_print_ast(node: python_ast.AST) -> None:
     """
-    Pretty prints the given python AST node to stdout.
+    Pretty prints the given AST node to stdout.
     """
-    print(get_pretty_python_ast_repr(node))
+    print(get_pretty_ast_repr(node))
 
 
 def parse_and_print_python(source_code: str) -> None:
     """
-    Parses the given source code and pretty prints the python AST.
+    Parses the given python source code and pretty prints its AST.
     """
-    pretty_print_python(python_ast.parse(source_code))
+    pretty_print_ast(python_ast.parse(source_code))

@@ -41,7 +41,7 @@ def get_pretty_lark_repr(node: LarkNode,
                 ch_indent_repr,
             )
     elif isinstance(node, Token):
-        s += f' = {node.value}\n'
+        s += f' = {repr(node.value)}\n'
     else:
         s += '\n'
 
@@ -55,7 +55,7 @@ def pretty_print_lark(node: LarkNode) -> None:
     print(get_pretty_lark_repr(node))
 
 
-def parse_and_print(source_code: str) -> None:
+def parse_and_print_lark(source_code: str) -> None:
     """
     Parses the given source code and pretty prints the parse tree.
     """
@@ -103,3 +103,17 @@ def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
         s = repr(val)
 
     return s
+
+
+def pretty_print_python(node: python_ast.AST) -> None:
+    """
+    Pretty prints the given python AST node to stdout.
+    """
+    print(get_pretty_python_ast_repr(node))
+
+
+def parse_and_print_python(source_code: str) -> None:
+    """
+    Parses the given source code and pretty prints the python AST.
+    """
+    pretty_print_python(python_ast.parse(source_code))

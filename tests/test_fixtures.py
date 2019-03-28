@@ -1,12 +1,9 @@
 import ast as python_ast
-import collections
+import collections.abc
 from pathlib import (
     Path,
 )
 
-from vyper_parser import (
-    ast as vyper_ast,
-)
 from vyper_parser.cst import (
     CSTVisitor,
     parse_python,
@@ -33,7 +30,7 @@ def assert_trees_equal(python_val, vyper_val):
     Asserts that a python and vyper ast contain equivalent information.
     """
     # Assert sequences are equal
-    if isinstance(python_val, collections.Sequence):
+    if isinstance(python_val, collections.abc.Sequence):
         for x, y in zip(python_val, vyper_val):
             assert_trees_equal(x, y)
 

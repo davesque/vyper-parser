@@ -80,39 +80,6 @@ def assert_node_type(node: LarkNode, typ: str) -> None:
     assert get_node_type(node) == typ
 
 
-def get_num_stmts(tree: Tree) -> int:
-    """
-    Returns the number of statements contained within an instance of a
-    supported set of node types.
-    """
-    typ = get_node_type(tree)
-    num_children = len(tree.children)
-
-    if typ == 'file_input':
-        n = 0
-        for ch in tree.children:
-            if get_node_type(ch) == 'stmt':
-                n += get_num_stmts(ch)
-        return n
-
-    if typ == 'stmt':
-        return get_num_stmts(tree.children[0])
-
-    if typ == 'compound_stmt':
-        return 1
-
-    if typ == 'simple_stmt':
-        return num_children
-
-    if typ == 'suite':
-        n = 0
-        for ch in tree.children:
-            n += get_num_stmts(ch)
-        return n
-
-    raise Exception(f'Non-statement found: {typ} {num_children}')
-
-
 TAst = TypeVar('TAst', bound=ast.VyperAST)
 
 

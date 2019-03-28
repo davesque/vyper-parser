@@ -45,7 +45,7 @@ parser = Lark.open(
 )
 
 
-def parse_python(source_code):
+def parse_python(source_code: str) -> Tree:
     return parser.parse(source_code + '\n')
 
 

@@ -107,6 +107,20 @@ def get_pretty_lark_repr(node: LarkNode, indent: int = 0) -> str:
     return s
 
 
+def pretty_print_lark(node: LarkNode) -> None:
+    """
+    Pretty prints the given lark node to stdout.
+    """
+    print(get_pretty_lark_repr(node))
+
+
+def parse_and_print(source_code: str) -> None:
+    """
+    Parses the given source code and pretty prints the parse tree.
+    """
+    pretty_print_lark(parse_python(source_code))
+
+
 def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
     """
     Returns a pretty-printed string representation of a python AST.
@@ -146,20 +160,6 @@ def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
         s = repr(val)
 
     return s
-
-
-def pretty_print_lark(node: LarkNode) -> None:
-    """
-    Pretty prints the given lark node to stdout.
-    """
-    print(get_pretty_lark_repr(node))
-
-
-def parse_and_print(source_code: str) -> None:
-    """
-    Parses the given source code and pretty prints the parse tree.
-    """
-    pretty_print_lark(parse_python(source_code))
 
 
 def get_num_stmts(tree: Tree) -> int:

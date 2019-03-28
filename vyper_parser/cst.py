@@ -1,3 +1,4 @@
+import ast as python_ast
 from typing import (
     Any,
     Callable,
@@ -102,6 +103,57 @@ def get_pretty_lark_repr(node: LarkNode, indent: int = 0) -> str:
         s += f' = {node.value}\n'
     else:
         s += '\n'
+
+    return s
+
+
+def get_pretty_python_ast_repr(val: Any,
+                               indent_repr: str = '',
+                               alt_indent_repr: str = '',
+                               indent_sep: str = ': ') -> str:
+    """
+    Returns a pretty-printed string representation of a python AST.
+    """
+    if isinstance(val, (list, tuple)) and len(val) > 0:
+        s = f'{indent_repr}['
+        for i in val:
+            s += '\n' + get_pretty_python_ast_repr(
+                i,
+                alt_indent_repr + indent_sep,
+                alt_indent_repr + indent_sep,
+                indent_sep,
+            ) + ','
+        s += f'\n{alt_indent_repr}]'
+    elif isinstance(val, python_ast.AST):
+        node = val
+        if hasattr(node, 'lineno'):
+            pos_repr = f'<line {node.lineno}, col {node.col_offset}>'
+        else:
+            pos_repr = ''
+
+        fields = node._fields
+        if len(fields) > 0:
+            s = f'{indent_repr}{node.__class__.__name__}(  {pos_repr}'
+
+            max_ch_len = max(len(f) for f in fields)
+
+            for i, f in enumerate(fields):
+                ch = getattr(node, f)
+                ch_indent_repr = indent_repr + indent_sep + f.ljust(max_ch_len) + '='
+                ch_alt_indent_repr = alt_indent_repr + indent_sep + ' ' * max_ch_len + ' '
+
+                s += '\n' + get_pretty_python_ast_repr(
+                    ch,
+                    ch_indent_repr,
+                    ch_alt_indent_repr,
+                    indent_sep,
+                ) + ','
+
+            s += f'\n{alt_indent_repr})'
+        else:
+            s = f'{indent_repr}{node.__class__.__name__}  {pos_repr}'
+    else:
+        s = f'{indent_repr}{repr(val)}'
 
     return s
 

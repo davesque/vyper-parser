@@ -67,16 +67,14 @@ class VyperAST:
         if isinstance(val, (list, tuple)):
             return seq_class(cls.from_python_ast(v) for v in val)
         elif isinstance(val, python_ast.AST):
-            node = val
-
-            python_class_name = node.__class__.__name__
+            python_class_name = val.__class__.__name__
             vyper_class = cls.all_subclasses_dict()[python_class_name]
 
             node_kwargs = {}
-            for f in node._fields:
-                node_kwargs[f] = cls.from_python_ast(getattr(node, f))
-            for a in node._attributes:
-                node_kwargs[a] = getattr(node, a)
+            for f in val._fields:
+                node_kwargs[f] = cls.from_python_ast(getattr(val, f))
+            for a in val._attributes:
+                node_kwargs[a] = getattr(val, a)
 
             return vyper_class(**node_kwargs)
         else:

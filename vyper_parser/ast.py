@@ -792,7 +792,7 @@ class Attribute(expr):
     def __init__(self,
                  value: expr,
                  attr: identifier,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -809,7 +809,7 @@ class Subscript(expr):
     def __init__(self,
                  value: expr,
                  slice: slice,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -825,7 +825,7 @@ class Starred(expr):
 
     def __init__(self,
                  value: expr,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -840,7 +840,7 @@ class Name(expr):
 
     def __init__(self,
                  id: identifier,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -855,7 +855,7 @@ class List(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: 'expr_context',
+                 ctx: Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):

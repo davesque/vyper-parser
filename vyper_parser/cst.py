@@ -73,13 +73,6 @@ def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
     }
 
 
-def assert_node_type(node: LarkNode, typ: str) -> None:
-    """
-    Asserts that the given node was matched by a certain grammar rule.
-    """
-    assert get_node_type(node) == typ
-
-
 TAst = TypeVar('TAst', bound=ast.VyperAST)
 
 

@@ -112,7 +112,7 @@ star_expr: "*" expr
 await_expr: AWAIT? atom_expr
 AWAIT: "await"
 
-atom_expr: atom_expr "(" [arguments] ")"      -> funccall
+?atom_expr: atom_expr "(" [arguments] ")"      -> funccall
           | atom_expr "[" subscriptlist "]"  -> getitem
           | atom_expr "." NAME               -> getattr
           | atom

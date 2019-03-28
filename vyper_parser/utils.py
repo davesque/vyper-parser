@@ -80,24 +80,22 @@ def get_pretty_ast_repr(val: Any, indent_sep: str = ': ') -> str:
             s += f'\n{indent_sep}' + f'\n{indent_sep}'.join(i_repr_lines) + ','
         s += '\n]'
     elif isinstance(val, (python_ast.AST, vyper_ast.VyperAST)):
-        node = val
-        if hasattr(node, 'lineno'):
-            pos_repr = f'  <line {node.lineno}, col {node.col_offset}>'
+        if hasattr(val, 'lineno'):
+            pos_repr = f'  <line {val.lineno}, col {val.col_offset}>'  # type: ignore
         else:
             pos_repr = ''
 
-        try:
-            fields = node._fields
-        except AttributeError:
-            try:
-                fields = node.__slots__
-            except AttributeError:
-                fields = ()
+        if isinstance(val, python_ast.AST):
+            fields = val._fields
+        elif isinstance(val, vyper_ast.VyperAST):
+            fields = val.__slots__
+        else:
+            raise Exception('Unknown node type')
 
         if len(fields) > 0:
-            s = f'{node.__class__.__name__}({pos_repr}'
+            s = f'{val.__class__.__name__}({pos_repr}'
             for field_name in fields:
-                field_val = getattr(node, field_name)
+                field_val = getattr(val, field_name)
                 f_repr = get_pretty_ast_repr(field_val, indent_sep)
                 f_repr_lines = f_repr.splitlines()
 
@@ -108,7 +106,7 @@ def get_pretty_ast_repr(val: Any, indent_sep: str = ': ') -> str:
                 s += first_line_prefix + other_line_prefix.join(f_repr_lines) + ','
             s += f'\n)'
         else:
-            s = f'{node.__class__.__name__}{pos_repr}'
+            s = f'{val.__class__.__name__}{pos_repr}'
     else:
         s = repr(val)
 

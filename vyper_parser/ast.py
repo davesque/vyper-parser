@@ -18,7 +18,10 @@ StmtSeq = typing.Sequence['stmt']
 WithItemSeq = typing.Sequence['withitem']
 
 
-def get_all_subclasses_dict(klass: typing.Type) -> typing.Dict[str, typing.Type]:
+SubclassesDict = typing.Dict[str, typing.Type]
+
+
+def get_all_subclasses_dict(klass: typing.Type) -> SubclassesDict:
     """
     Returns a dictionary of all subclasses of ``klass`` keyed by class name.
     """
@@ -35,8 +38,10 @@ def get_all_subclasses_dict(klass: typing.Type) -> typing.Dict[str, typing.Type]
 class VyperAST:
     __slots__ = ()
 
+    _all_subclasses_dict_cache: typing.Optional[SubclassesDict] = None
+
     @classmethod
-    def all_subclasses_dict(cls) -> typing.Dict[str, typing.Type]:
+    def all_subclasses_dict(cls) -> SubclassesDict:
         """
         Returns a dictionary of all the subclasses in the ``VyperAST`` class
         tree keyed by name.
@@ -55,13 +60,13 @@ class VyperAST:
         cls,
         val: typing.Any,
         seq_class: typing.Union[typing.Type[list], typing.Type[tuple]] = tuple,
-    ) -> 'VyperAST':
+    ) -> typing.Any:
         """
         Convert a python AST into a vyper AST.
         """
         if isinstance(val, (list, tuple)):
             return seq_class(cls.from_python_ast(v) for v in val)
-        if isinstance(val, python_ast.AST):
+        elif isinstance(val, python_ast.AST):
             node = val
 
             python_class_name = node.__class__.__name__

@@ -48,37 +48,6 @@ def parse_python(source_code):
     return parser.parse(source_code + '\n')
 
 
-def get_node_type(node: LarkNode) -> str:
-    """
-    Returns the node type (name of matching grammar rule) for the given lark
-    node.
-    """
-    if isinstance(node, Tree):
-        return node.data
-    elif isinstance(node, Token):
-        return node.type
-    else:
-        raise Exception('Unrecognized node type')
-
-
-def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
-    """
-    Returns a dictionary containing positional kwargs based on the parsing
-    position of ``node``.
-    """
-    return {
-        'lineno': node.line,
-        'col_offset': node.column - 1,
-    }
-
-
-def assert_node_type(node: LarkNode, typ: str) -> None:
-    """
-    Asserts that the given node was matched by a certain grammar rule.
-    """
-    assert get_node_type(node) == typ
-
-
 def get_pretty_lark_repr(node: LarkNode, indent: int = 0) -> str:
     """
     Returns a pretty-printed string representation of a lark node and all of
@@ -160,6 +129,37 @@ def get_pretty_python_ast_repr(val: Any, indent_sep: str = ': ') -> str:
         s = repr(val)
 
     return s
+
+
+def get_node_type(node: LarkNode) -> str:
+    """
+    Returns the node type (name of matching grammar rule) for the given lark
+    node.
+    """
+    if isinstance(node, Tree):
+        return node.data
+    elif isinstance(node, Token):
+        return node.type
+    else:
+        raise Exception('Unrecognized node type')
+
+
+def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
+    """
+    Returns a dictionary containing positional kwargs based on the parsing
+    position of ``node``.
+    """
+    return {
+        'lineno': node.line,
+        'col_offset': node.column - 1,
+    }
+
+
+def assert_node_type(node: LarkNode, typ: str) -> None:
+    """
+    Asserts that the given node was matched by a certain grammar rule.
+    """
+    assert get_node_type(node) == typ
 
 
 def get_num_stmts(tree: Tree) -> int:

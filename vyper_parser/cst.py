@@ -5,6 +5,7 @@ from typing import (
     Generic,
     Type,
     TypeVar,
+    cast,
 )
 
 from lark import (
@@ -73,7 +74,7 @@ def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
     }
 
 
-TAst = TypeVar('TAst', bound=ast.VyperAST)
+TAst = TypeVar('TAst', Type[ast.unaryop], Type[ast.operator])
 
 
 def make_op_token_visitor(
@@ -81,7 +82,7 @@ def make_op_token_visitor(
     rule_name: str,
     op_mapping: Dict[str, TAst],
 ) -> Callable[[Any, Tree], TAst]:
-    def op_token_visitor(self, tree: Tree) -> TAst:
+    def op_token_visitor(self: 'CSTVisitor', tree: Tree) -> TAst:
         token = str(tree.children[0])
         try:
             return op_mapping[token]
@@ -93,11 +94,13 @@ def make_op_token_visitor(
     return op_token_visitor
 
 
-TSeq = TypeVar('TSeq', Type[list], Type[tuple])
+TSeq = TypeVar('TSeq', list, tuple)
 
 
 class CSTVisitor(Generic[TSeq]):
-    def __init__(self, seq_class: TSeq = tuple):
+    seq_class: Type[TSeq]
+
+    def __init__(self, seq_class: Type[TSeq]):
         self.seq_class = seq_class
 
     def visit(self, node: LarkNode) -> ast.VyperAST:
@@ -143,11 +146,18 @@ class CSTVisitor(Generic[TSeq]):
         """
         if len(tree.children) == 1:
             return ast.Expr(
-                self.visit(tree.children[0]),
+                cast(ast.expr, self.visit(tree.children[0])),
+                **get_pos_kwargs(tree),
+            )
+        else:
+            # TODO: This return statement is just a placeholder to satisfy
+            # mypy.  Need to implement the rest of this CST transformer.
+            return ast.Expr(
+                cast(ast.expr, self.visit(tree.children[0])),
                 **get_pos_kwargs(tree),
             )
 
-    def visit_testlist_star_expr(self, tree: Tree) -> TSeq:
+    def visit_testlist_star_expr(self, tree: Tree) -> ast.VyperAST:
         """
         testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]
         ?test: ... here starts the operator precedence dance
@@ -172,7 +182,7 @@ class CSTVisitor(Generic[TSeq]):
                 **get_pos_kwargs(tree),
             )
 
-    def visit_test(self, tree: Tree) -> ast.Expr:
+    def visit_test(self, tree: Tree) -> ast.IfExp:
         """
         ?test: or_test ["if" or_test "else" test] | lambdef
 
@@ -188,9 +198,9 @@ class CSTVisitor(Generic[TSeq]):
         body, test, orelse = tree.children
 
         return ast.IfExp(
-            self.visit(test),
-            self.visit(body),
-            self.visit(orelse),
+            cast(ast.expr, self.visit(test)),
+            cast(ast.expr, self.visit(body)),
+            cast(ast.expr, self.visit(orelse)),
             **get_pos_kwargs(tree),
         )
 
@@ -210,8 +220,8 @@ class CSTVisitor(Generic[TSeq]):
             args, body = tree.children
 
         return ast.Lambda(
-            self.visit(args),
-            self.visit(body),
+            cast(ast.arguments, self.visit(args)),
+            cast(ast.expr, self.visit(body)),
             **get_pos_kwargs(tree),
         )
 
@@ -258,7 +268,7 @@ class CSTVisitor(Generic[TSeq]):
 
         return ast.UnaryOp(
             ast.Not,
-            self.visit(operand),
+            cast(ast.expr, self.visit(operand)),
             **get_pos_kwargs(tree),
         )
 
@@ -279,7 +289,7 @@ class CSTVisitor(Generic[TSeq]):
             comparators.append(tree.children[i + 1])
 
         return ast.Compare(
-            self.visit(left),
+            cast(ast.expr, self.visit(left)),
             self.seq_class(self.visit(op) for op in ops),
             self.seq_class(self.visit(cmp) for cmp in comparators),
             **get_pos_kwargs(tree),
@@ -296,7 +306,7 @@ class CSTVisitor(Generic[TSeq]):
         value = tree.children[0]
 
         return ast.Starred(
-            self.visit(value),
+            cast(ast.expr, self.visit(value)),
             ast.Load,
             **get_pos_kwargs(tree),
         )
@@ -315,9 +325,9 @@ class CSTVisitor(Generic[TSeq]):
         left, op, right = tree.children[:2]
 
         result = ast.BinOp(
-            self.visit(left),
-            self.visit(op),
-            self.visit(right),
+            cast(ast.expr, self.visit(left)),
+            cast(Type[ast.operator], self.visit(op)),
+            cast(ast.expr, self.visit(right)),
             **get_pos_kwargs(tree),
         )
 
@@ -328,8 +338,8 @@ class CSTVisitor(Generic[TSeq]):
 
             tmp_result = ast.BinOp(
                 result,
-                self.visit(next_op),
-                self.visit(next_expr),
+                cast(Type[ast.operator], self.visit(next_op)),
+                cast(ast.expr, self.visit(next_expr)),
                 **get_pos_kwargs(next_op),
             )
 
@@ -356,8 +366,8 @@ class CSTVisitor(Generic[TSeq]):
         op, operand = tree.children
 
         return ast.UnaryOp(
-            self.visit(op),
-            self.visit(operand),
+            cast(Type[ast.unaryop], self.visit(op)),
+            cast(ast.expr, self.visit(operand)),
             **get_pos_kwargs(tree),
         )
 
@@ -413,7 +423,7 @@ class CSTVisitor(Generic[TSeq]):
         ('is', 'not'): ast.IsNot,
     }
 
-    def visit_comp_op(self, tree: Tree) -> ast.cmpop:
+    def visit_comp_op(self, tree: Tree) -> Type[ast.cmpop]:
         """
         !comp_op: "<"|">"|"=="|">="|"<="|"<>"|"!="|"in"|"not" "in"|"is"|"is" "not"
 
@@ -442,13 +452,13 @@ class CSTVisitor(Generic[TSeq]):
         left, right = tree.children
 
         return ast.BinOp(
-            self.visit(left),
+            cast(ast.expr, self.visit(left)),
             ast.Pow,
-            self.visit(right),
+            cast(ast.expr, self.visit(right)),
             **get_pos_kwargs(tree),
         )
 
-    def visit_await_expr(self, tree: Tree) -> ast.Await:
+    def visit_await_expr(self, tree: Tree) -> ast.VyperAST:
         """
         await_expr: AWAIT? atom_expr
         AWAIT: "await"
@@ -467,18 +477,18 @@ class CSTVisitor(Generic[TSeq]):
         assert str(await_str) == 'await'
 
         return ast.Await(
-            self.visit(value),
+            cast(ast.expr, self.visit(value)),
             **get_pos_kwargs(tree),
         )
 
-    def visit_ellipsis(self, tree: Tree) -> ast.Expr:
+    def visit_ellipsis(self, tree: Tree) -> ast.Ellipsis:
         return ast.Ellipsis(**get_pos_kwargs(tree))
 
-    def visit_const_none(self, tree: Tree) -> ast.Expr:
+    def visit_const_none(self, tree: Tree) -> ast.NameConstant:
         return ast.NameConstant(None, **get_pos_kwargs(tree))
 
-    def visit_const_true(self, tree: Tree) -> ast.Expr:
+    def visit_const_true(self, tree: Tree) -> ast.NameConstant:
         return ast.NameConstant(True, **get_pos_kwargs(tree))
 
-    def visit_const_false(self, tree: Tree) -> ast.Expr:
+    def visit_const_false(self, tree: Tree) -> ast.NameConstant:
         return ast.NameConstant(False, **get_pos_kwargs(tree))

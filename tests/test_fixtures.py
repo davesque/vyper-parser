@@ -68,7 +68,7 @@ def test_fixture_trees_are_equivalent(fixture_path):
     source_code = read_file(fixture_path)
 
     cst = parse_python(source_code)
-    vyper_node = CSTVisitor().visit(cst)
+    vyper_node = CSTVisitor(tuple).visit(cst)
 
     python_node = python_ast.parse(source_code)
 

@@ -9,5 +9,4 @@ from lark.tree import (
     Tree,
 )
 
-
 LarkNode = Union[Tree, Token]

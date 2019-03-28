@@ -1,5 +1,7 @@
+import ast as python_ast
 from typing import (
     Any,
+    Dict,
     Sequence,
     Type,
     Union,
@@ -22,8 +24,62 @@ StmtSeq = Sequence['stmt']
 WithItemSeq = Sequence['withitem']
 
 
+def get_all_subclasses_dict(klass: Type) -> Dict[str, Type]:
+    """
+    Returns a dictionary of all subclasses of ``klass`` keyed by class name.
+    """
+    collected = {}
+    subclasses = klass.__subclasses__()
+
+    for subcls in subclasses:
+        collected[subcls.__name__] = subcls
+        collected.update(get_all_subclasses_dict(subcls))
+
+    return collected
+
+
 class VyperAST:
     __slots__ = ()
+
+    @classmethod
+    def all_subclasses_dict(cls) -> Dict[str, Type]:
+        """
+        Returns a dictionary of all the subclasses in the ``VyperAST`` class
+        tree keyed by name.
+        """
+        cache = getattr(cls, '_all_subclasses_dict_cache', None)
+        if cache is not None:
+            return cache
+
+        class_dict = get_all_subclasses_dict(cls)
+        cls._all_subclasses_dict_cache = class_dict
+
+        return class_dict
+
+    @classmethod
+    def from_python_ast(cls,
+                        val: Any,
+                        seq_class: Union[Type[list], Type[tuple]] = tuple) -> 'VyperAST':
+        """
+        Convert a python AST into a vyper AST.
+        """
+        if isinstance(val, (list, tuple)):
+            return seq_class(cls.from_python_ast(v) for v in val)
+        if isinstance(val, python_ast.AST):
+            node = val
+
+            python_class_name = node.__class__.__name__
+            vyper_class = cls.all_subclasses_dict()[python_class_name]
+
+            node_kwargs = {}
+            for f in node._fields:
+                node_kwargs[f] = cls.from_python_ast(getattr(node, f))
+            for a in node._attributes:
+                node_kwargs[a] = getattr(node, a)
+
+            return vyper_class(**node_kwargs)
+        else:
+            return val
 
 
 class mod(VyperAST):

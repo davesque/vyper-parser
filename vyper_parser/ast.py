@@ -1,30 +1,24 @@
 import ast as python_ast
-from typing import (
-    Any,
-    Dict,
-    Sequence,
-    Type,
-    Union,
-)
+import typing
 
-constant = Any
+constant = typing.Any
 identifier = str
-singleton = Union[None, bool]
+singleton = typing.Union[None, bool]
 
-AliasSeq = Sequence['alias']
-ArgSeq = Sequence['arg']
-CmpOpSeq = Sequence[Type['cmpop']]
-ComprehensionSeq = Sequence['comprehension']
-ExceptHandlerSeq = Sequence['excepthandler']
-ExprSeq = Sequence['expr']
-IdentifierSeq = Sequence['identifier']
-KeywordSeq = Sequence['keyword']
-SliceSeq = Sequence['slice']
-StmtSeq = Sequence['stmt']
-WithItemSeq = Sequence['withitem']
+AliasSeq = typing.Sequence['alias']
+ArgSeq = typing.Sequence['arg']
+CmpOpSeq = typing.Sequence[typing.Type['cmpop']]
+ComprehensionSeq = typing.Sequence['comprehension']
+ExceptHandlerSeq = typing.Sequence['excepthandler']
+ExprSeq = typing.Sequence['expr']
+IdentifierSeq = typing.Sequence['identifier']
+KeywordSeq = typing.Sequence['keyword']
+SliceSeq = typing.Sequence['slice']
+StmtSeq = typing.Sequence['stmt']
+WithItemSeq = typing.Sequence['withitem']
 
 
-def get_all_subclasses_dict(klass: Type) -> Dict[str, Type]:
+def get_all_subclasses_dict(klass: typing.Type) -> typing.Dict[str, typing.Type]:
     """
     Returns a dictionary of all subclasses of ``klass`` keyed by class name.
     """
@@ -42,7 +36,7 @@ class VyperAST:
     __slots__ = ()
 
     @classmethod
-    def all_subclasses_dict(cls) -> Dict[str, Type]:
+    def all_subclasses_dict(cls) -> typing.Dict[str, typing.Type]:
         """
         Returns a dictionary of all the subclasses in the ``VyperAST`` class
         tree keyed by name.
@@ -57,9 +51,11 @@ class VyperAST:
         return class_dict
 
     @classmethod
-    def from_python_ast(cls,
-                        val: Any,
-                        seq_class: Union[Type[list], Type[tuple]] = tuple) -> 'VyperAST':
+    def from_python_ast(
+        cls,
+        val: typing.Any,
+        seq_class: typing.Union[typing.Type[list], typing.Type[tuple]] = tuple,
+    ) -> 'VyperAST':
         """
         Convert a python AST into a vyper AST.
         """
@@ -234,7 +230,7 @@ class AugAssign(stmt):
 
     def __init__(self,
                  target: 'expr',
-                 op: Type['operator'],
+                 op: typing.Type['operator'],
                  value: 'expr',
                  *,
                  lineno: int = None,
@@ -505,7 +501,7 @@ class BoolOp(expr):
     __slots__ = ('op', 'values')
 
     def __init__(self,
-                 op: Type['boolop'],
+                 op: typing.Type['boolop'],
                  values: ExprSeq,
                  *,
                  lineno: int = None,
@@ -521,7 +517,7 @@ class BinOp(expr):
 
     def __init__(self,
                  left: expr,
-                 op: Type['operator'],
+                 op: typing.Type['operator'],
                  right: expr,
                  *,
                  lineno: int = None,
@@ -537,7 +533,7 @@ class UnaryOp(expr):
     __slots__ = ('op', 'operand')
 
     def __init__(self,
-                 op: Type['unaryop'],
+                 op: typing.Type['unaryop'],
                  operand: expr,
                  *,
                  lineno: int = None,
@@ -747,7 +743,7 @@ class Num(expr):
     __slots__ = ('n',)
 
     def __init__(self,
-                 n: Union[int, float],
+                 n: typing.Union[int, float],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -848,7 +844,7 @@ class Attribute(expr):
     def __init__(self,
                  value: expr,
                  attr: identifier,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -865,7 +861,7 @@ class Subscript(expr):
     def __init__(self,
                  value: expr,
                  slice: slice,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -881,7 +877,7 @@ class Starred(expr):
 
     def __init__(self,
                  value: expr,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -896,7 +892,7 @@ class Name(expr):
 
     def __init__(self,
                  id: identifier,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -911,7 +907,7 @@ class List(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):
@@ -926,7 +922,7 @@ class Tuple(expr):
 
     def __init__(self,
                  elts: ExprSeq,
-                 ctx: Type['expr_context'],
+                 ctx: typing.Type['expr_context'],
                  *,
                  lineno: int = None,
                  col_offset: int = None):

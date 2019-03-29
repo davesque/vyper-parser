@@ -157,6 +157,34 @@ class CSTVisitor(Generic[TSeq]):
                 **get_pos_kwargs(tree),
             )
 
+    AUGASSIGN_OPS = {
+        '+=': ast.Add,
+        '-=': ast.Sub,
+        '*=': ast.Mult,
+        '@=': ast.MatMult,
+        '/=': ast.Div,
+        '%=': ast.Mod,
+        '&=': ast.BitAnd,
+        '|=': ast.BitOr,
+        '^=': ast.BitXor,
+        '<<=': ast.LShift,
+        '>>=': ast.RShift,
+        '**=': ast.Pow,
+        '//=': ast.FloorDiv,
+    }
+    visit_augassign = make_op_token_visitor(
+        """
+        !augassign: ("+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^="
+            | "<<=" | ">>=" | "**=" | "//=")
+
+        Analogous to:
+        ast_for_augassign
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L1116)
+        """,
+        'augassign',
+        AUGASSIGN_OPS,
+    )
+
     def visit_testlist_star_expr(self, tree: Tree) -> ast.VyperAST:
         """
         testlist_star_expr: (test|star_expr) ("," (test|star_expr))* [","]

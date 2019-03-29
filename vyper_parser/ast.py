@@ -1,6 +1,13 @@
 import ast as python_ast
 import typing
 
+from vyper_parser.types import (
+    SubclassesDict,
+)
+from vyper_parser.utils import (
+    get_all_subclasses_dict,
+)
+
 constant = typing.Any
 identifier = str
 singleton = typing.Union[None, bool]
@@ -16,23 +23,6 @@ KeywordSeq = typing.Sequence['keyword']
 SliceSeq = typing.Sequence['slice']
 StmtSeq = typing.Sequence['stmt']
 WithItemSeq = typing.Sequence['withitem']
-
-
-SubclassesDict = typing.Dict[str, typing.Type]
-
-
-def get_all_subclasses_dict(klass: typing.Type) -> SubclassesDict:
-    """
-    Returns a dictionary of all subclasses of ``klass`` keyed by class name.
-    """
-    collected = {}
-    subclasses = klass.__subclasses__()
-
-    for subcls in subclasses:
-        collected[subcls.__name__] = subcls
-        collected.update(get_all_subclasses_dict(subcls))
-
-    return collected
 
 
 class VyperAST:

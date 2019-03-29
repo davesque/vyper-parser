@@ -1,6 +1,7 @@
 import ast as python_ast
 from typing import (
     Any,
+    Type,
 )
 
 from lark import (
@@ -15,6 +16,7 @@ from vyper_parser import (
 )
 from vyper_parser.types import (
     LarkNode,
+    SubclassesDict,
 )
 
 
@@ -125,3 +127,24 @@ def parse_and_print_python(source_code: str) -> None:
     Parses the given python source code and pretty prints its AST.
     """
     pretty_print_ast(python_ast.parse(source_code))
+
+
+def get_all_subclasses_dict(klass: Type, same_module: bool = True) -> SubclassesDict:
+    """
+    Returns a dictionary of all subclasses of ``klass`` keyed by class name.
+    If ``same_module`` is ``True``, requires that all discovered subclasses are
+    defined in the same module as ``klass``.
+    """
+    klass_module = klass.__module__
+
+    collected = {}
+    subclasses = klass.__subclasses__()
+
+    for subcls in subclasses:
+        if same_module and subcls.__module__ != klass_module:
+            continue
+
+        collected[subcls.__name__] = subcls
+        collected.update(get_all_subclasses_dict(subcls, same_module))
+
+    return collected

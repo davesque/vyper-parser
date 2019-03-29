@@ -419,7 +419,6 @@ class CSTVisitor(Generic[TSeq]):
         '%': ast.Mod,
         '//': ast.FloorDiv,
     }
-
     OP_TOKEN_DOCS = """
     !factor_op: "+"|"-"|"~"
     !add_op: "+"|"-"

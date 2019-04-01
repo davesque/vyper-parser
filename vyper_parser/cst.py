@@ -1,3 +1,4 @@
+import ast as python_ast
 from typing import (
     Any,
     Callable,
@@ -72,6 +73,32 @@ def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
         'lineno': node.line,
         'col_offset': node.column - 1,
     }
+
+
+def get_str_ast(tree: Tree) -> ast.VyperAST:
+    """
+    Converts a lark "atom" rule match tree into a vyper AST representation.
+    """
+    s_repr = '(\n'
+
+    for ch in tree.children:
+        assert isinstance(ch, Tree)
+        assert ch.data == 'string'
+
+        str_token = ch.children[0]
+        s_repr += str(str_token) + '\n'
+
+    s_repr += ')'
+
+    module_node = python_ast.parse(s_repr)
+    str_node = module_node.body[0].value
+    vyper_node = ast.VyperAST.from_python_ast(str_node)
+
+    # Reset parsing position to the position of the parsed lark node
+    ast.translate_parsing_pos(vyper_node, -vyper_node.lineno, -vyper_node.col_offset)
+    ast.translate_parsing_pos(vyper_node, tree.line, tree.column)
+
+    return vyper_node
 
 
 TAst = TypeVar('TAst', Type[ast.unaryop], Type[ast.operator])

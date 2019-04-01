@@ -25,6 +25,28 @@ StmtSeq = typing.Sequence['stmt']
 WithItemSeq = typing.Sequence['withitem']
 
 
+def translate_parsing_pos(val: typing.Any, line_delta: int, col_delta: int) -> None:
+    """
+    Translates the parsing position of an AST node and all of its child nodes.
+    """
+    if isinstance(val, (list, tuple)):
+        # Translate each item in sequence
+        for item in val:
+            translate_parsing_pos(item, line_delta, col_delta)
+    elif isinstance(val, VyperAST):
+        # Translate this node
+        if isinstance(val, PosAttributes):
+            val.lineno += line_delta
+            val.col_offset += col_delta
+        # Translate all of this node's children
+        for field in val.__slots__:
+            child = getattr(val, field)
+            translate_parsing_pos(child, line_delta, col_delta)
+    else:
+        # This isn't a node or a collection of nodes.  Do nothing.
+        return
+
+
 class VyperAST:
     __slots__ = ()
 

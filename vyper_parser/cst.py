@@ -26,6 +26,9 @@ from vyper_parser import (
 from vyper_parser.types import (
     LarkNode,
 )
+from vyper_parser.validation import (
+    validate_name,
+)
 
 
 class PythonIndenter(Indenter):
@@ -99,6 +102,50 @@ def get_str_ast(tree: Tree) -> ast.VyperAST:
     ast.translate_parsing_pos(vyper_node, tree.line, tree.column)
 
     return vyper_node
+
+
+CONTEXT_DEPENDENT_EXPRS = (
+    ast.Attribute,
+    ast.Subscript,
+    ast.Starred,
+    ast.Name,
+    ast.List,
+    ast.Tuple,
+)
+
+
+def set_assignment_context(expr: ast.expr, ctx: Type[ast.expr_context]) -> None:
+    """
+    Recursively sets the assignment context for an expression ``expr`` and all
+    of its children.
+
+    Analogous to:
+    set_context
+    (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L988)
+    """
+    if ctx in (ast.AugStore, ast.AugLoad):
+        raise ValueError(f'Illegal assignment context: {repr(ctx)}')
+
+    if isinstance(expr, CONTEXT_DEPENDENT_EXPRS):
+        expr.ctx = ctx
+
+        if isinstance(expr, ast.Starred):
+            set_assignment_context(expr.value, ctx)
+
+        elif isinstance(expr, (ast.List, ast.Tuple)):
+            for elt in expr.elts:
+                set_assignment_context(elt, ctx)
+
+        elif ctx is ast.Store:
+            if isinstance(expr, ast.Attribute):
+                validate_name(expr.attr, full_checks=True)
+            elif isinstance(expr, ast.Name):
+                validate_name(expr.id, full_checks=False)
+            else:
+                raise ValueError(f'Illegal store context expression: {repr(expr)}')
+
+    else:
+        raise ValueError(f'Illegal assignment expression: {repr(expr)}')
 
 
 TAst = TypeVar('TAst', Type[ast.unaryop], Type[ast.operator])
@@ -177,13 +224,84 @@ class CSTVisitor(Generic[TSeq]):
                 cast(ast.expr, self.visit(tree.children[0])),
                 **get_pos_kwargs(tree),
             )
-        else:
-            # TODO: This return statement is just a placeholder to satisfy
-            # mypy.  Need to implement the rest of this CST transformer.
-            return ast.Expr(
-                cast(ast.expr, self.visit(tree.children[0])),
-                **get_pos_kwargs(tree),
-            )
+
+        child_type = get_node_type(tree.children[1])
+        pos = get_pos_kwargs(tree)
+
+        if child_type == 'augassign':
+            # Augmented assignment (+=, -=, etc.)
+            target_tree = tree.children[0]
+
+            target = self.visit(target_tree)
+            set_assignment_context(target, ast.Store)
+
+            if not isinstance(target, (
+                ast.Name,
+                ast.Attribute,
+                ast.Subscript,
+            )):
+                raise Exception(
+                    f'Illegal target for augmented assignment: {repr(target)}',
+                )
+
+            op = self.visit(tree.children[1])
+            value = self.visit(tree.children[2])
+
+            return ast.AugAssign(target, op, value, **pos)
+
+        if child_type == 'annassign':
+            # Annotated assignment (x: int = ...)
+            target_tree = tree.children[0]
+            ann_tree = tree.children[1]
+
+            target = self.visit(target_tree)
+            simple = isinstance(target, ast.Name)
+
+            target = target.value
+            if isinstance(target, ast.Name):
+                validate_name(target.id, full_checks=False)
+                target.ctx = ast.Store
+            elif isinstance(target, ast.Attribute):
+                validate_name(target.attr, full_checks=True)
+                target.ctx = ast.Store
+            elif isinstance(target, ast.Subscript):
+                target.ctx = ast.Store
+            else:
+                raise Exception(
+                    f'Illegal target for annotation: {repr(target)}',
+                )
+
+            annotation = self.visit(ann_tree.children[0])
+            if len(ann_tree.children) == 1:
+                return ast.AnnAssign(
+                    target=target,
+                    annotation=annotation,
+                    simple=simple,
+                    **pos,
+                )
+            else:
+                value = self.visit(ann_tree.children[1])
+                return ast.AnnAssign(
+                    target=target,
+                    annotation=annotation,
+                    value=value,
+                    simple=simple,
+                    **pos,
+                )
+
+        # Normal assignment (x = ...)
+        targets = []
+        for ch in tree.children[:-1]:
+            if get_node_type(ch) == 'yield_expr':
+                raise Exception('Assignment to yield expression not possible')
+
+            e = self.visit(ch)
+            set_assignment_context(e, ast.Store)
+
+            targets.append(e)
+
+        value = self.visit(tree.children[-1])
+        return ast.Assign(targets, value, **pos)
 
     AUGASSIGN_OPS = {
         '+=': ast.Add,
@@ -537,6 +655,35 @@ class CSTVisitor(Generic[TSeq]):
             cast(ast.expr, self.visit(value)),
             **get_pos_kwargs(tree),
         )
+
+    def visit_atom(self, tree: Tree) -> ast.VyperAST:
+        """
+        atom: "(" [yield_expr|testlist_comp] ")" -> tuple
+            | "[" [testlist_comp] "]"  -> list
+            | "{" [dictorsetmaker] "}" -> dict
+            | NAME -> var
+            | number | string+
+            | "(" test ")"
+            | "..." -> ellipsis
+            | "None"    -> const_none
+            | "True"    -> const_true
+            | "False"   -> const_false
+
+        Analogous to:
+        ast_for_atom
+        (https://github.com/python/cpython/blob/v3.6.8/Python/ast.c#L2091)
+        """
+        first_child = tree.children[0]
+        if isinstance(first_child, Tree) and first_child.data == 'string':
+            # Matched string+ pattern.  Treat this node as a string literal.
+            return get_str_ast(tree)
+        else:
+            assert len(tree.children) == 1
+            return self.visit(first_child)
+
+    def visit_var(self, tree: Tree) -> ast.Name:
+        name_id = str(tree.children[0])
+        return ast.Name(name_id, ast.Load, **get_pos_kwargs(tree))
 
     def visit_ellipsis(self, tree: Tree) -> ast.Ellipsis:
         return ast.Ellipsis(**get_pos_kwargs(tree))

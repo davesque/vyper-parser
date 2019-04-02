@@ -37,7 +37,7 @@ def get_pretty_lark_repr(node: LarkNode,
     if isinstance(node, Tree) and len(node.children) > 0:
         s += '\n'
         ch_indent_lvl = indent_lvl + 1
-        ch_indent_repr = indent_repr + (' |' if ch_indent_lvl % 2 else ' :')
+        ch_indent_repr = indent_repr + ('| ' if ch_indent_lvl % 2 else ': ')
 
         for ch in node.children:
             s += get_pretty_lark_repr(

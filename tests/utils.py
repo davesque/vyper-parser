@@ -14,6 +14,16 @@ def assert_trees_equal(python_val, vyper_val, check_pos=True):
         for x, y in zip(python_val, vyper_val):
             assert_trees_equal(x, y, check_pos)
 
+    # Assert analogous node class objects have the same name
+    elif isinstance(vyper_val, type):
+        assert isinstance(python_val, python_ast.AST)
+        assert issubclass(vyper_val, vyper_ast.VyperAST)
+
+        python_typ = python_val.__class__.__name__
+        vyper_typ = vyper_val.__name__
+
+        assert python_typ == vyper_typ
+
     # Assert analogous node classes are equal
     elif isinstance(python_val, python_ast.AST):
         # Class names are the same

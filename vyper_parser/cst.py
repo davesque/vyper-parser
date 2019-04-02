@@ -257,7 +257,6 @@ class CSTVisitor(Generic[TSeq]):
             target = self.visit(target_tree)
             simple = isinstance(target, ast.Name)
 
-            target = target.value
             if isinstance(target, ast.Name):
                 validate_name(target.id, full_checks=False)
                 target.ctx = ast.Store

@@ -172,6 +172,7 @@ class CSTVisitor(Generic[TSeq]):
         * ``x = y = 1``
         """
         if len(tree.children) == 1:
+            # If only one child, pass through to testlist_star_expr match
             return ast.Expr(
                 cast(ast.expr, self.visit(tree.children[0])),
                 **get_pos_kwargs(tree),
@@ -229,8 +230,10 @@ class CSTVisitor(Generic[TSeq]):
         * ``1, 2``
         """
         if len(tree.children) == 1:
+            # If only one child, pass through to test or star_expr match
             return self.visit(tree.children[0])
         else:
+            # Otherwise, this match is a comma-delimited tuple
             return ast.Tuple(
                 self._visit_children(tree),
                 ast.Load,

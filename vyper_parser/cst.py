@@ -78,7 +78,7 @@ def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
     }
 
 
-def get_str_ast(tree: Tree) -> ast.VyperAST:
+def get_str_ast(tree: Tree) -> ast.Str:
     """
     Converts a lark "atom" rule match tree into a vyper string AST
     representation.
@@ -95,7 +95,8 @@ def get_str_ast(tree: Tree) -> ast.VyperAST:
     s_repr += ')'
 
     module_node = python_ast.parse(s_repr)
-    str_node = module_node.body[0].value
+    expr_node = cast(python_ast.Expr, module_node.body[0])
+    str_node = expr_node.value
     vyper_node = ast.VyperAST.from_python_ast(str_node)
 
     # Reset parsing position to the position of the parsed lark node
@@ -105,7 +106,7 @@ def get_str_ast(tree: Tree) -> ast.VyperAST:
     return vyper_node
 
 
-def get_num_ast(tree: Tree) -> ast.VyperAST:
+def get_num_ast(tree: Tree) -> ast.Num:
     """
     Converts a lark "number" rule match tree into a vyper number AST
     representation.
@@ -116,7 +117,8 @@ def get_num_ast(tree: Tree) -> ast.VyperAST:
     n_repr = str(tree.children[0])
 
     module_node = python_ast.parse(n_repr)
-    num_node = module_node.body[0].value
+    expr_node = cast(python_ast.Expr, module_node.body[0])
+    num_node = expr_node.value
     vyper_node = ast.VyperAST.from_python_ast(num_node)
 
     # Reset parsing position to the position of the parsed lark node
@@ -254,7 +256,7 @@ class CSTVisitor(Generic[TSeq]):
             # Augmented assignment (+=, -=, etc.)
             target_tree = tree.children[0]
 
-            target = self.visit(target_tree)
+            target = cast(ast.expr, self.visit(target_tree))
             set_assignment_context(target, ast.Store)
 
             if not isinstance(target, (
@@ -266,8 +268,8 @@ class CSTVisitor(Generic[TSeq]):
                     f'Illegal target for augmented assignment: {repr(target)}',
                 )
 
-            op = self.visit(tree.children[1])
-            value = self.visit(tree.children[2])
+            op = cast(Type[ast.operator], self.visit(tree.children[1]))
+            value = cast(ast.expr, self.visit(tree.children[2]))
 
             return ast.AugAssign(target, op, value, **pos)
 
@@ -276,7 +278,7 @@ class CSTVisitor(Generic[TSeq]):
             target_tree = tree.children[0]
             ann_tree = tree.children[1]
 
-            target = self.visit(target_tree)
+            target = cast(ast.expr, self.visit(target_tree))
             simple = isinstance(target, ast.Name)
 
             if isinstance(target, ast.Name):
@@ -292,16 +294,16 @@ class CSTVisitor(Generic[TSeq]):
                     f'Illegal target for annotation: {repr(target)}',
                 )
 
-            annotation = self.visit(ann_tree.children[0])
+            annotation = cast(ast.expr, self.visit(ann_tree.children[0]))
             if len(ann_tree.children) == 1:
-                return ast.AnnAssign(
+                return ast.AnnAssign(  # type: ignore
                     target=target,
                     annotation=annotation,
                     simple=simple,
                     **pos,
                 )
             else:
-                value = self.visit(ann_tree.children[1])
+                value = cast(ast.expr, self.visit(ann_tree.children[1]))
                 return ast.AnnAssign(
                     target=target,
                     annotation=annotation,
@@ -316,12 +318,12 @@ class CSTVisitor(Generic[TSeq]):
             if get_node_type(ch) == 'yield_expr':
                 raise Exception('Assignment to yield expression not possible')
 
-            e = self.visit(ch)
+            e = cast(ast.expr, self.visit(ch))
             set_assignment_context(e, ast.Store)
 
             targets.append(e)
 
-        value = self.visit(tree.children[-1])
+        value = cast(ast.expr, self.visit(tree.children[-1]))
         return ast.Assign(targets, value, **pos)
 
     AUGASSIGN_OPS = {

@@ -105,6 +105,27 @@ def get_str_ast(tree: Tree) -> ast.VyperAST:
     return vyper_node
 
 
+def get_num_ast(tree: Tree) -> ast.VyperAST:
+    """
+    Converts a lark "number" rule match tree into a vyper number AST
+    representation.
+    """
+    assert isinstance(tree, Tree)
+    assert tree.data == 'number'
+
+    n_repr = str(tree.children[0])
+
+    module_node = python_ast.parse(n_repr)
+    num_node = module_node.body[0].value
+    vyper_node = ast.VyperAST.from_python_ast(num_node)
+
+    # Reset parsing position to the position of the parsed lark node
+    ast.translate_parsing_pos(vyper_node, -vyper_node.lineno, -vyper_node.col_offset)
+    ast.translate_parsing_pos(vyper_node, tree.line, tree.column)
+
+    return vyper_node
+
+
 CONTEXT_DEPENDENT_EXPRS = (
     ast.Attribute,
     ast.Subscript,
@@ -684,6 +705,9 @@ class CSTVisitor(Generic[TSeq]):
     def visit_var(self, tree: Tree) -> ast.Name:
         name_id = str(tree.children[0])
         return ast.Name(name_id, ast.Load, **get_pos_kwargs(tree))
+
+    def visit_number(self, tree: Tree) -> ast.Num:
+        return get_num_ast(tree)
 
     def visit_ellipsis(self, tree: Tree) -> ast.Ellipsis:
         return ast.Ellipsis(**get_pos_kwargs(tree))

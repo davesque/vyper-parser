@@ -11,9 +11,6 @@ from lark.tree import (
     Tree,
 )
 
-from vyper_parser import (
-    ast as vyper_ast,
-)
 from vyper_parser.types import (
     LarkNode,
     SubclassesDict,
@@ -73,6 +70,10 @@ def get_pretty_ast_repr(val: Any, indent_sep: str = ': ') -> str:
     """
     Returns a pretty-printed string representation of an AST.
     """
+    from vyper_parser import (
+        ast as vyper_ast,
+    )
+
     if isinstance(val, (list, tuple)) and len(val) > 0:
         s = '['
         for i in val:

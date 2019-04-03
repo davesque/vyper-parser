@@ -80,7 +80,8 @@ def get_pos_kwargs(node: LarkNode) -> Dict[str, int]:
 
 def get_str_ast(tree: Tree) -> ast.VyperAST:
     """
-    Converts a lark "atom" rule match tree into a vyper AST representation.
+    Converts a lark "atom" rule match tree into a vyper string AST
+    representation.
     """
     s_repr = '(\n'
 

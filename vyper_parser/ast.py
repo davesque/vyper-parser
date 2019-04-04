@@ -5,6 +5,7 @@ from vyper_parser.types import (
     SubclassesDict,
 )
 from vyper_parser.utils import (
+    Singleton,
     get_all_subclasses_dict,
 )
 
@@ -947,7 +948,7 @@ class Tuple(expr):
         super().__init__(lineno=lineno, col_offset=col_offset)
 
 
-class expr_context(VyperAST):
+class expr_context(Singleton, VyperAST):
     pass
 
 
@@ -1007,7 +1008,7 @@ class Index(slice):
         self.value = value
 
 
-class boolop(VyperAST):
+class boolop(Singleton, VyperAST):
     pass
 
 

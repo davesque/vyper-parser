@@ -149,3 +149,11 @@ def get_all_subclasses_dict(klass: Type, same_module: bool = True) -> Subclasses
         collected.update(get_all_subclasses_dict(subcls, same_module))
 
     return collected
+
+
+class Singleton:
+    def __new__(cls, *args, **kwargs):
+        if args or kwargs:
+            raise TypeError('Cannot pass arguments to singleton class constructor')
+
+        return cls

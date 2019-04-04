@@ -62,7 +62,7 @@ class VyperAST:
         if cache is not None:
             return cache
 
-        class_dict = get_all_subclasses_dict(cls)
+        class_dict = get_all_subclasses_dict(cls, same_module=True)
         cls._all_subclasses_dict_cache = class_dict
 
         return class_dict
